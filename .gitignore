@@ -25,7 +25,6 @@ PBTA_RNA/*.txt
 !PBTA_RNA/README.md
 
 # Generated outputs are tracked
-# clinical_analysis.ipynb and basic_clinical_summary.md are committed
 
 # OS
 .DS_Store

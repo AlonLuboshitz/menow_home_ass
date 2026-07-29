@@ -1,7 +1,7 @@
-# Code Guidelines for Building `clinical_analysis.ipynb`
+# Code Guidelines for PBTA_RNA Project
 
-This document defines the development conventions for the PBTA_RNA clinical analysis notebook.  
-The working agent MUST read and follow these guidelines before writing any code.
+This document defines the universal development conventions for all notebooks and analyses in this project.
+Any working agent MUST read and follow these guidelines before writing any code.
 
 ---
 
@@ -9,7 +9,7 @@ The working agent MUST read and follow these guidelines before writing any code.
 
 - **Tool:** `uv` (fast Python package manager, drop-in replacement for pip)
 - **Python version:** >3.10
-- **Setup steps (once):**
+- **Setup steps (once, already done):**
   ```bash
   cd /home/alon/menow_home_ass
   uv venv .venv --python 3.11
@@ -17,7 +17,7 @@ The working agent MUST read and follow these guidelines before writing any code.
   ```
 - **Installing packages:** Use `uv pip install` not `pip install`
   ```bash
-  uv pip install pandas numpy plotly scipy jupyter
+  uv pip install <package_name>
   ```
 - **Freezing dependencies (after all packages installed):**
   ```bash
@@ -29,7 +29,7 @@ The working agent MUST read and follow these guidelines before writing any code.
   python -m ipykernel install --user --name=pbta_env --display-name="Python (PBTA)"
   ```
 - **Never** use `!pip install` inside the notebook — all dependencies must be pre-installed before running.
-- All generated output files (`.ipynb`, `.md`, `.txt`) belong in the project root `/home/alon/menow_home_ass/`.
+- All notebooks go under `notebooks/`. Generated outputs stay alongside their notebook.
 
 ## 2. Version Control (Git)
 
@@ -53,31 +53,57 @@ The working agent MUST read and follow these guidelines before writing any code.
 - Always commit from `/home/alon/menow_home_ass/`.
 - Use `git add <file>` for specific files, never `git add .` blindly.
 
-## 3. Coding Standards
+## 3. Project Structure
+
+```
+/home/alon/menow_home_ass/
+├── context/                ← All reference/instruction .md files for agents
+│   ├── <analysis>_instruction.md
+│   ├── <analysis>_plan.md
+│   ├── code_guidelines.md
+│   ├── assignment.md
+│   └── referencess.md
+├── notebooks/              ← All notebooks
+│   ├── <analysis>.ipynb
+│   └── <analysis>/
+│       └── nb_cells/       ← Optional: per-step cell sources
+├── analyses/               ← Empty dirs for future work
+│   ├── statistical_analysis/
+│   └── mrna_analysis/
+├── .gitignore
+├── requirements.txt
+├── opencode.json
+└── PBTA_RNA/               ← Raw data (gitignored .txt files)
+```
+
+## 4. Coding Standards
 
 - **Style:** Write clean, readable Python with comments for non-obvious logic.
 - **Pandas:** Use method chaining where appropriate; avoid deep nesting.
 - **Plotting:** Prefer Plotly (interactive) over matplotlib/seaborn. All plots must have: title, axis labels, legend (if applicable).
 - **Validation:** Every step in the notebook must include a validation cell that prints missing-value counts or data integrity checks.
 - **Independence:** Each notebook step should be independently runnable (repeat imports as needed).
-- **File paths:** Always use absolute paths rooted at `/home/alon/menow_home_ass/` or relative paths from that directory.
+- **File paths:** Use absolute paths rooted at `/home/alon/menow_home_ass/` or relative paths from that directory.
 - **Errors:** If a step fails, print a clear error message and continue — do not crash the notebook.
 
-## 4. Workflow Sequence
+## 5. General Workflow Sequence
 
 The agent should follow this order:
 
-1. Set up uv environment (if not already done)
-2. Read the following reference files:
-   - `/home/alon/menow_home_ass/instruction.md` (the 20-step notebook plan)
-   - `/home/alon/menow_home_ass/basic_clinical_analysis_plan.md` (schema reference)
-   - `/home/alon/menow_home_ass/referencess.md` (statistical methods)
-3. Install all required libraries via `uv pip install`
-4. Freeze dependencies: `uv pip freeze > requirements.txt`
-5. Commit environment setup: `chore: set up Python environment and freeze dependencies`
-6. Build `clinical_analysis.ipynb` following instruction.md
-7. Commit the notebook: `feat: implement clinical analysis notebook with 20 steps`
-8. Run the notebook end-to-end to verify no errors
-9. If errors occur, fix and re-run until clean
-10. Commit fixes: `fix: resolve notebook errors from verification run`
-11. Build the summary: the notebook's Step 19 generates `basic_clinical_summary.md` automatically
+1. **Read context** — Read the relevant files from `context/`:
+   - `<analysis>_instruction.md` (the step-by-step notebook plan)
+   - `<analysis>_plan.md` (schema reference, if any)
+   - `code_guidelines.md` (this file)
+   - `referencess.md` (statistical methods, if relevant)
+2. **Set up environment** — Activate existing venv; install any missing libraries via `uv pip install`
+3. **Freeze dependencies** — `uv pip freeze > requirements.txt`
+4. **Commit setup** — `chore: set up Python environment and freeze dependencies`
+5. **Build the notebook** — Create `<analysis>.ipynb` in `notebooks/` following the instruction file
+6. **Commit notebook** — `feat: implement <analysis> notebook`
+7. **Verify** — Run the notebook end-to-end:
+   ```bash
+   jupyter nbconvert --to notebook --execute --ExecutePreprocessor.timeout=600 notebooks/<analysis>.ipynb --output notebooks/<analysis>_executed.ipynb
+   ```
+8. **Fix errors** if any, re-run until clean
+9. **Commit fixes** — `fix: resolve notebook errors from verification run`
+10. **Generate summary** — If the notebook produces a summary file, commit it too

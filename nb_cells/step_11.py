@@ -1,0 +1,10 @@
+samples = read_patients()
+patients = read_patients()
+merged = read_samples().merge(patients,on='PATIENT_ID',how='left',suffixes=('','_p'))
+sc = merged.groupby('PATIENT_ID')['SAMPLE_ID'].nunique().reset_index()
+sc.columns = ['PID','N']
+fig = go.Figure()
+fig.add_trace(go.Histogram(x=sc['N'],nbinsx=30,marker_color='darkorange',opacity=0.8))
+fig.update_layout(title='Samples per Patient',xaxis_title='Samples',yaxis_title='Patients',height=400)
+fig.show()
+print('Top 10:'); print(sc.sort_values('N',ascending=False).head(10).to_string(index=False))

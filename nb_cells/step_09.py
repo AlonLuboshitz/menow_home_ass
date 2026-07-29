@@ -1,0 +1,8 @@
+df = read_samples()
+fig = make_subplots(rows=1,cols=2,subplot_titles=('Experiment Strategy','RNA Library'))
+es = df['EXPERIMENT_STRATEGY'].value_counts()
+fig.add_trace(go.Bar(x=es.index,y=es.values,marker_color='teal',text=es.values,textposition='outside',showlegend=False),row=1,col=1)
+lb = df['RNA_LIBRARY_SELECTION'].value_counts()
+fig.add_trace(go.Bar(x=lb.index,y=lb.values,marker_color='purple',text=lb.values,textposition='outside',showlegend=False),row=1,col=2)
+fig.update_layout(title='Sequencing Methods',height=400,xaxis_tickangle=-45,xaxis2_tickangle=-45)
+fig.show()

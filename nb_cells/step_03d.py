@@ -1,0 +1,6 @@
+co = df[['OS_MONTHS','os_event']].dropna()
+ce = df[['EFS_MONTHS','efs_event']].dropna()
+print(f'OS complete: {len(co)}/{len(df)}')
+print(f'EFS complete: {len(ce)}/{len(df)}')
+print(f'OS status:\n{df["OS_STATUS"].value_counts(dropna=False)}')
+print(f'\nEFS event:\n{df["efs_event"].value_counts(dropna=False)}')

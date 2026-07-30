@@ -53,7 +53,7 @@ notebooks/
 | Phase | Title | Variables Tested | Outcome | Statistical Tests | Threshold | Status |
 |-------|-------|-----------------|---------|------------------|-----------|--------|
 | **1** | Outcome Analysis | AGE, TF, TP, SEX, PREDISPOSITION | OS & EFS (binary + time) | MW, χ², KM + log-rank, Cliff's d, Cramer's V | n ≥ 20 | ✅ Complete |
-| **2 + 3** | Clinical Associations | SEX, PRED, SUBTYPE, RACE, AGE, TF, TP — per-group enrichment & comparisons | Association only | Binomial, Fisher exact, KW + MW, Spearman ρ, FDR per-family | n ≥ 20 | ✅ Complete |
+| **2 + 3** | Clinical Associations | SEX, PRED, SUBTYPE, RACE, AGE, TF, TP — per-group enrichment & distribution | Association only | Binomial, Chi-squared, KW + MW, Spearman ρ, FDR per-family | n ≥ 20 | 🔲 Plan review |
 | **4** | Multivariate Models | All above combined | OS & EFS (time) | Cox PH, HR forest | n ≥ 20 | 🔲 Planned |
 | **5** | Unsupervised | AGE, TF, TP, SEX, CG, SUBTYPE, etc. | Cluster discovery | PCA, t-SNE, K-means, FAMD, silhouette, log-rank validation | n ≥ 50 | 🔲 Planned |
 | **6** | Summary | All above | Consolidated report | — | — | 🔲 Planned |
@@ -102,22 +102,23 @@ Reported alongside every p-value (Cliff's d, ε², Cramer's V, HR). See general 
 
 All Phase 2 tests produce **one row per group** in the results CSV, matching the survival_analysis format. FDR is applied **within each test family** (not across families).
 
-| # | Test | Method | Details |
-|---|------|--------|---------|
-| 1 | SEX enrichment | Binomial vs 50:50, per CG | Tests if sex ratio deviates from 50:50. Reports %Male, %Female, which sex is enriched. FDR family: `SEX enrichment` |
-| 2 | Predisposition enrichment | Fisher exact (hypergeometric), per predisposition × per CG | For each specific CANCER_PREDISPOSITIONS value: 2×2 table (has_pred × in_group). Tests if a predisposition is enriched in a specific group vs all others. FDR family: `Predisposition enrichment` |
-| 3 | SUBTYPE distribution | Descriptive heatmap only | Cross-tab of MOLECULAR_SUBTYPE × CANCER_GROUP with count annotations. No statistical tests. |
-| 4 | SEX × Predisposition 3-way | Fisher / Chi² per CG | 2×2: SEX (M/F) × PRED_BINARY (Any predisposition / None). Tests if predisposition status is associated with sex within each cancer group. FDR family: `SEX × Predisposition` |
-| 5 | Race enrichment | Fisher exact (hypergeometric), per race × per CG | For each RACE category: 2×2 table (has_race × in_group). Tests if a race category is enriched in a specific group vs all others. FDR family: `Race enrichment` |
+| # | Test | Checks | Method | Details |
+|---|------|--------|--------|---------|
+| 1 | SEX enrichment | "Is there a sex bias in this cancer group compared to 50:50?" | Binomial vs 50:50, per CG | Tests if sex ratio deviates from 50:50. Reports %Male, %Female, which sex is enriched. Plot: horizontal bar chart of %Male/%Female per CG with significance stars. FDR family: `SEX enrichment` |
+| 2 | Predisposition profile | "Does the predisposition makeup of this cancer group differ from all other cancers combined?" | Chi-squared per CG (profile vs rest) | Exclude "No predisposition"/"Unknown". For each CG, compare its distribution of predisposition categories to all other CGs combined. Plot: stacked bar of predisposition composition per CG. Also show top predispositions per CG descriptively. FDR family: `Predisposition profile` |
+| 3 | SUBTYPE distribution | (descriptive only — no hypothesis test) | Heatmap only | Cross-tab of MOLECULAR_SUBTYPE × CANCER_GROUP with count annotations. No statistical tests. |
+| 4 | Race distribution | "Does the racial composition of this cancer group differ from the overall cohort's racial composition?" | Chi-squared per CG (profile vs overall) | For each CG, compare its within-group race distribution to the overall race distribution. Plot: stacked bar of race composition per CG vs overall. FDR family: `Race distribution` |
 
 #### Phase 3 — Numeric Comparisons
 
-| # | Test | Method | Details |
-|---|------|--------|---------|
-| 6 | AGE × CANCER_GROUP | Global KW + per-group MW | Kruskal-Wallis across all groups, then each group vs all others via Mann-Whitney. Boxplot ordered by median. FDR family: `AGE × CG` |
-| 7 | TF × CANCER_GROUP | Global KW + per-group MW | Same structure for TUMOR_FRACTION. FDR family: `TF × CG` |
-| 8 | TP × CANCER_GROUP | Global KW + per-group MW | Same structure for TUMOR_PLOIDY. FDR family: `TP × CG` |
-| 9-11 | Numeric correlations | Spearman ρ | AGE×TF, AGE×TP, TF×TP. Scatter plots with LOESS smoother. FDR family: `Numeric correlations` |
+| # | Test | Checks | Method | Details |
+|---|------|--------|--------|---------|
+| 5 | AGE × CANCER_GROUP | "Does AGE differ across cancer groups? Which groups are outliers?" | Global KW + per-group MW (each vs all others) | Kruskal-Wallis across all groups. Then each group vs all others combined via Mann-Whitney to find which groups differ. Boxplot ordered by median. FDR family: `AGE × CG` |
+| 6 | TF × CANCER_GROUP | "Does TUMOR_FRACTION differ across cancer groups? Which groups are outliers?" | Global KW + per-group MW (each vs all others) | Same structure as Test 5. FDR family: `TF × CG` |
+| 7 | TP × CANCER_GROUP | "Does TUMOR_PLOIDY differ across cancer groups? Which groups are outliers?" | Global KW + per-group MW (each vs all others) | Same structure as Test 5. FDR family: `TP × CG` |
+| 8 | AGE × TF correlation | "Is AGE associated with TUMOR_FRACTION?" | Spearman ρ + LOESS scatter | Scatter plot with LOESS smoother. FDR family: `Numeric correlations` |
+| 9 | AGE × TP correlation | "Is AGE associated with TUMOR_PLOIDY?" | Spearman ρ + LOESS scatter | Scatter plot with LOESS smoother. FDR family: `Numeric correlations` |
+| 10 | TF × TP correlation | "Is TUMOR_FRACTION associated with TUMOR_PLOIDY?" | Spearman ρ + LOESS scatter | Scatter plot with LOESS smoother. FDR family: `Numeric correlations` |
 
 ### Workflow
 

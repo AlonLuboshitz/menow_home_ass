@@ -7,6 +7,7 @@ from nbformat.v4 import new_notebook, new_markdown_cell, new_code_cell
 OUT_DIR = '/home/alon/menow_home_ass/notebooks/clinical_associations'
 NB_PATH = os.path.join(OUT_DIR, 'clinical_associations_analysis.ipynb')
 os.makedirs(OUT_DIR, exist_ok=True)
+os.makedirs(os.path.join(OUT_DIR, 'src'), exist_ok=True)
 
 nb = new_notebook()
 nb.metadata = {
@@ -22,7 +23,7 @@ cells = []
 
 # ── Cell 0: Title ──
 cells.append(new_markdown_cell(
-    '# Phase 2+3: Clinical Associations \u2014 Cross-Categorical & Numeric Comparisons'
+    '# Phase 2+3: Clinical Associations — Cross-Categorical & Numeric Comparisons'
 ))
 
 # ── Cell 1: Summary ──
@@ -32,607 +33,784 @@ cells.append(new_markdown_cell(
     '**Phase 3 (Numeric Comparisons)** of the clinical deep-dive analysis.\n\n'
     '**Phase 2** tests for per-group enrichment of categorical variables across '
     'cancer groups using binomial tests, Fisher exact tests, and chi-squared tests. '
-    'Each cancer group gets its own p-value for every comparison.\n\n'
+    'Each cancer group gets its own p-value for every comparison. Results are '
+    'visualized with horizontal bar charts and annotated heatmaps.\n\n'
     '**Phase 3** compares numeric variables (AGE, TUMOR_FRACTION, TUMOR_PLOIDY) '
     'across cancer groups using Kruskal-Wallis and per-group Mann-Whitney tests, '
-    'and computes Spearman correlations between numeric pairs.\n\n'
+    'and computes Spearman correlations between numeric pairs with LOESS-smoothed '
+    'scatter plots.\n\n'
     'All results are saved in a unified CSV format matching `survival_analysis_results.csv`.'
 ))
 
 # ── Cell 2: Imports ──
-cells.append(new_code_cell(
-    '# ── Standard library ──\n'
-    'import sys, os, warnings\n'
-    'warnings.filterwarnings(\'ignore\')\n\n'
-    '# ── Data handling ──\n'
-    'import numpy as np\n'
-    'import pandas as pd\n\n'
-    '# ── Statistics ──\n'
-    'from scipy.stats import chi2_contingency, fisher_exact, binom_test, kruskal, spearmanr, mannwhitneyu\n'
-    'import statsmodels.stats.multitest as smm\n'
-    'from itertools import combinations\n\n'
-    '# ── Plotting ──\n'
-    'import plotly.graph_objects as go\n'
-    'import plotly.express as px\n'
-    'import plotly.io as pio\n'
-    'pio.templates.default = \'plotly_white\'\n\n'
-    '# ── Helpers ──\n'
-    'sys.path.insert(0, \'/home/alon/menow_home_ass/notebooks/clinical_analysis/src\')\n'
-    'from imports import (\n'
-    '    read_patients, read_samples,\n'
-    '    clean_os, clean_efs, clean_race_eth,\n'
-    '    clean_pred, clean_subtype, clean_tf_tp\n'
-    ')\n\n'
-    'print("\u2705 All imports loaded")'
-))
+cells.append(new_code_cell("""import sys, os, warnings, math
+warnings.filterwarnings("ignore")
+import numpy as np
+import pandas as pd
+from scipy.stats import chi2_contingency, fisher_exact, binom_test, kruskal, spearmanr, mannwhitneyu
+import statsmodels.stats.multitest as smm
+from itertools import combinations
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
+import plotly.io as pio
+pio.templates.default = "plotly_white"
+from IPython.display import display
+
+sys.path.insert(0, "/home/alon/menow_home_ass/notebooks/clinical_analysis/src")
+from imports import (
+    read_patients, read_samples,
+    clean_os, clean_efs, clean_race_eth,
+    clean_pred, clean_subtype, clean_tf_tp
+)
+
+print("✅ All imports loaded")"""))
 
 # ── Cell 3: Data loading ──
-cells.append(new_code_cell(
-    '# ── Load data ──\n'
-    'pat = read_patients()\n'
-    'smp = read_samples()\n\n'
-    '# Merge on PATIENT_ID (inner)\n'
-    'df = pat.merge(smp, on=\'PATIENT_ID\', how=\'inner\')\n'
-    'print(f"Merged dataset: {df.shape[0]} rows, {df.shape[1]} columns")\n\n'
-    '# ── Clean ──\n'
-    'df = clean_race_eth(df)\n'
-    'df = clean_pred(df)\n'
-    'df = clean_subtype(df)\n'
-    'df = clean_tf_tp(df)\n\n'
-    '# ── OS / EFS for reference ──\n'
-    'df = clean_os(df)\n'
-    'df = clean_efs(df)\n\n'
-    '# ── Categorical variables as strings ──\n'
-    'for col in [\'SEX\', \'CANCER_GROUP\', \'CANCER_PREDISPOSITIONS\', \'RACE\', \'MOLECULAR_SUBTYPE\']:\n'
-    '    if col in df.columns:\n'
-    '        df[col] = df[col].astype(str)\n\n'
-    '# ── Display summary ──\n'
-    'print("\\nSample sizes per cancer group:")\n'
-    'print(df[\'CANCER_GROUP\'].value_counts().to_string())\n'
-    'print(f"\\nTotal unique patients: {df[\'PATIENT_ID\'].nunique()}")\n'
-    'print(f"Total samples: {len(df)}")'
-))
+cells.append(new_code_cell("""pat = read_patients()
+smp = read_samples()
+df = pat.merge(smp, on="PATIENT_ID", how="inner")
+print(f"Merged dataset: {df.shape[0]} rows, {df.shape[1]} columns")
+
+df = clean_race_eth(df)
+df = clean_pred(df)
+df = clean_subtype(df)
+df = clean_tf_tp(df)
+df = clean_os(df)
+df = clean_efs(df)
+
+for col in ["SEX", "CANCER_GROUP", "CANCER_PREDISPOSITIONS", "RACE", "MOLECULAR_SUBTYPE"]:
+    if col in df.columns:
+        df[col] = df[col].astype(str)
+
+print("\\nSample sizes per cancer group:")
+print(df["CANCER_GROUP"].value_counts().to_string())
+print(f"\\nTotal unique patients: {df['PATIENT_ID'].nunique()}")
+print(f"Total samples: {len(df)}")"""))
 
 # ── Cell 4: Phase 2 header ──
 cells.append(new_markdown_cell(
     '## Phase 2: Cross-Categorical Associations\n\n'
-    'Each test produces **per-group p-values** — one row per cancer group per comparison.\n'
-    'Tests: binomial test (enrichment of a category vs overall proportion), '
-    'Fisher exact / chi-squared for 2\u00d72 contingency tables.'
+    'Each test produces **per-group p-values** — one row per cancer group per comparison. '
+    'Tests include binomial tests (Test 1), Fisher exact enrichment (Tests 2, 4, 5), '
+    'and descriptive heatmaps (Test 3). FDR is applied within each Comparison family.'
 ))
 
 # ── Cell 5: Phase 2 helpers ──
-cells.append(new_code_cell(
-    '# ── Phase 2 helpers ──\n\n'
-    'def binom_test_proportion(n_success, n_total, p_null):\n'
-    '    """Binomial test for one group against a null proportion."""\n'
-    '    if n_total == 0:\n'
-    '        return 1.0\n'
-    '    return binom_test(n_success, n_total, p_null, alternative=\'two-sided\')\n\n'
-    'def sig_star(p):\n'
-    '    if p < 0.001: return \'***\'\n'
-    '    if p < 0.01: return \'**\'\n'
-    '    if p < 0.05: return \'*\'\n'
-    '    return \'ns\'\n\n'
-    'def has_pred(val):\n'
-    '    """Collapse predisposition to binary: any known vs none."""\n'
-    '    if pd.isna(val) or val in [\'nan\', \'\', \'Unknown\', \'No predisposition\']:\n'
-    '        return \'No predisposition\'\n'
-    '    return \'Any predisposition\'\n\n'
-    'print("\u2705 Phase 2 helpers defined")'
-))
+cells.append(new_code_cell("""def sig_star(p):
+    if p < 0.001: return "***"
+    if p < 0.01: return "**"
+    if p < 0.05: return "*"
+    return "ns"
 
-# ── Cell 6: Test 1 — SEX enrichment per cancer group ──
-cells.append(new_code_cell(
-    '# ── Test 1: SEX enrichment per cancer group ──\n'
-    'print("=" * 70)\n'
-    'print("Test 1: SEX enrichment per cancer group")\n'
-    'print("=" * 70)\n\n'
-    '# Overall Female proportion\n'
-    'sub = df[df[\'SEX\'].isin([\'Female\', \'Male\'])].copy()\n'
-    'overall_female = (sub[\'SEX\'] == \'Female\').mean()\n'
-    'print(f"Overall %Female: {overall_female*100:.1f}%  ({sub[\'SEX\'].value_counts().to_dict()})")\n\n'
-    'results_ph2 = []\n'
-    'for group in sorted(sub[\'CANCER_GROUP\'].unique()):\n'
-    '    g = sub[sub[\'CANCER_GROUP\'] == group]\n'
-    '    n = len(g)\n'
-    '    if n < 20:\n'
-    '        continue\n'
-    '    n_f = (g[\'SEX\'] == \'Female\').sum()\n'
-    '    n_m = n - n_f\n'
-    '    pct_f = n_f / n * 100\n'
-    '    p = binom_test_proportion(n_f, n, overall_female)\n'
-    '    effect = pct_f - overall_female * 100\n'
-    '    results_ph2.append({\n'
-    '        \'Phase\': \'Phase 2\', \'Comparison\': \'SEX enrichment\',\n'
-    '        \'Test\': \'Binomial\', \'Group\': group, \'N\': n,\n'
-    '        \'N_events\': n_f, \'Statistic\': f\'{pct_f:.1f}%F\',\n'
-    '        \'p_value\': round(p, 6), \'Effect_Size\': round(effect, 2),\n'
-    '        \'Significant\': sig_star(p)\n'
-    '    })\n'
-    '    print(f"  {group:40s} N={n:4d}  %F={pct_f:5.1f}%  p={p:.4f}  {sig_star(p)}")\n\n'
-    'df_ph2_seg = pd.DataFrame(results_ph2)\n\n'
-    '# Visualize\n'
-    'if len(df_ph2_seg) > 0:\n'
-    '    plot_df = df_ph2_seg.sort_values(\'Effect_Size\')\n'
-    '    fig = px.bar(plot_df, x=\'Group\', y=\'Effect_Size\',\n'
-    '                 title=f\'SEX enrichment: %Female deviation from overall ({overall_female*100:.1f}%)\',\n'
-    '                 color=\'Significant\',\n'
-    '                 color_discrete_map={\'*\': \'red\', \'**\': \'darkred\', \'***\': \'maroon\', \'ns\': \'grey\'},\n'
-    '                 hover_data=[\'N\', \'N_events\', \'p_value\'])\n'
-    '    fig.update_layout(xaxis_tickangle=45, height=500, width=1000)\n'
-    '    fig.add_hline(y=0, line_dash=\'dash\', line_color=\'black\')\n'
-    '    try: fig.show()\n'
-    '    except: pass'
-))
+def run_enrichment(df, value_col, group_col="CANCER_GROUP", min_n=20):
+    results = []
+    values = [v for v in df[value_col].unique() if pd.notna(v) and str(v).strip() not in ("", "nan", "Unknown")]
+    total_n = len(df)
+    for val in sorted(values):
+        val_mask = df[value_col] == val
+        n_val_total = val_mask.sum()
+        for group in sorted(df[group_col].unique()):
+            g = df[df[group_col] == group]
+            n_group = len(g)
+            if n_group < min_n:
+                continue
+            in_group_and_val = val_mask[df[group_col] == group].sum()
+            in_group_not_val = n_group - in_group_and_val
+            not_in_group_and_val = n_val_total - in_group_and_val
+            not_in_group_not_val = total_n - n_group - n_val_total + in_group_and_val
+            table = [[in_group_and_val, in_group_not_val],
+                     [not_in_group_and_val, not_in_group_not_val]]
+            try:
+                odds, p = fisher_exact(table)
+            except Exception:
+                odds, p = 1.0, 1.0
+            results.append({
+                "value": val, "group": group,
+                "n_group": n_group,
+                "n_with_val_in_group": in_group_and_val,
+                "n_with_val_total": n_val_total,
+                "odds_ratio": odds, "p_value": p
+            })
+    return results
 
-# ── Cell 7: Test 2 — Predisposition prevalence per cancer group ──
-cells.append(new_code_cell(
-    '# ── Test 2: Predisposition prevalence per cancer group ──\n'
-    'print("=" * 70)\n'
-    'print("Test 2: Predisposition prevalence per cancer group")\n'
-    'print("=" * 70)\n\n'
-    'df[\'PRED_BINARY\'] = df[\'CANCER_PREDISPOSITIONS\'].apply(has_pred)\n\n'
-    'sub = df[df[\'PRED_BINARY\'].isin([\'Any predisposition\', \'No predisposition\'])].copy()\n'
-    'overall_pred = (sub[\'PRED_BINARY\'] == \'Any predisposition\').mean()\n'
-    'print(f"Overall %with predisposition: {overall_pred*100:.1f}%")\n\n'
-    'for group in sorted(sub[\'CANCER_GROUP\'].unique()):\n'
-    '    g = sub[sub[\'CANCER_GROUP\'] == group]\n'
-    '    n = len(g)\n'
-    '    if n < 20:\n'
-    '        continue\n'
-    '    n_pred = (g[\'PRED_BINARY\'] == \'Any predisposition\').sum()\n'
-    '    pct_pred = n_pred / n * 100\n'
-    '    p = binom_test_proportion(n_pred, n, overall_pred)\n'
-    '    effect = pct_pred - overall_pred * 100\n'
-    '    results_ph2.append({\n'
-    '        \'Phase\': \'Phase 2\', \'Comparison\': \'Predisposition prevalence\',\n'
-    '        \'Test\': \'Binomial\', \'Group\': group, \'N\': n,\n'
-    '        \'N_events\': n_pred, \'Statistic\': f\'{pct_pred:.1f}%Pred\',\n'
-    '        \'p_value\': round(p, 6), \'Effect_Size\': round(effect, 2),\n'
-    '        \'Significant\': sig_star(p)\n'
-    '    })\n'
-    '    print(f"  {group:40s} N={n:4d}  %Pred={pct_pred:5.1f}%  p={p:.4f}  {sig_star(p)}")\n\n'
-    '# Specific predispositions detail\n'
-    'print("\\nSpecific predispositions by cancer group (groups with \u22655 predisposed samples):")\n'
-    'pred_detail = (df[df[\'PRED_BINARY\'] == \'Any predisposition\']\n'
-    '    .groupby([\'CANCER_GROUP\', \'CANCER_PREDISPOSITIONS\']).size()\n'
-    '    .reset_index(name=\'count\'))\n'
-    'pred_detail = pred_detail[pred_detail[\'count\'] >= 3].sort_values(\'count\', ascending=False)\n'
-    'print(pred_detail.to_string(index=False))'
-))
+results_ph2 = []
+print("✅ Phase 2 helpers defined")"""))
 
-# ── Cell 8: Test 3 — Subtype distribution ──
-cells.append(new_code_cell(
-    '# ── Test 3: Subtype distribution and enrichment ──\n'
-    'print("=" * 70)\n'
-    'print("Test 3: Subtype distribution and enrichment")\n'
-    'print("=" * 70)\n\n'
-    '# Descriptive: subtype composition for top cancer groups\n'
-    'top_cgs = df[\'CANCER_GROUP\'].value_counts().head(10).index.tolist()\n'
-    'print(f"Subtype distribution for top 10 cancer groups:\\n")\n'
-    'for cg in top_cgs:\n'
-    '    g = df[df[\'CANCER_GROUP\'] == cg]\n'
-    '    subtypes = g[\'MOLECULAR_SUBTYPE\'].value_counts()\n'
-    '    n = len(g)\n'
-    '    n_subtypes = len(subtypes)\n'
-    '    probs = subtypes.values / n\n'
-    '    entropy = -sum(p * np.log(p) for p in probs)\n'
-    '    print(f"  {cg:35s} N={n:4d}  subtypes={n_subtypes:3d}  entropy={entropy:.2f}")\n'
-    '    for sub_name, count in subtypes.head(5).items():\n'
-    '        print(f"    {str(sub_name)[:50]:50s} {count:4d} ({count/n*100:5.1f}%)")\n'
-    '    print()\n\n'
-    '# Enrichment per subtype (subtypes with \u226550 total samples)\n'
-    'print("Subtype enrichment per cancer group (subtypes with \u226550 total samples):")\n'
-    'overall_counts = df[\'MOLECULAR_SUBTYPE\'].value_counts()\n'
-    'major_subtypes = overall_counts[overall_counts >= 50].index.tolist()\n\n'
-    'for st in major_subtypes:\n'
-    '    overall_pct = (df[\'MOLECULAR_SUBTYPE\'] == st).mean()\n'
-    '    for cg in sorted(df[\'CANCER_GROUP\'].unique()):\n'
-    '        g = df[df[\'CANCER_GROUP\'] == cg]\n'
-    '        n = len(g)\n'
-    '        if n < 20:\n'
-    '            continue\n'
-    '        n_st = (g[\'MOLECULAR_SUBTYPE\'] == st).sum()\n'
-    '        if n_st < 3:\n'
-    '            continue\n'
-    '        pct = n_st / n * 100\n'
-    '        p = binom_test_proportion(n_st, n, overall_pct)\n'
-    '        if p < 0.05:\n'
-    '            effect = pct - overall_pct * 100\n'
-    '            results_ph2.append({\n'
-    '                \'Phase\': \'Phase 2\', \'Comparison\': f\'Subtype enrichment: {st[:30]}\',\n'
-    '                \'Test\': \'Binomial\', \'Group\': cg, \'N\': n,\n'
-    '                \'N_events\': n_st, \'Statistic\': f\'{pct:.1f}%\',\n'
-    '                \'p_value\': round(p, 6), \'Effect_Size\': round(effect, 2),\n'
-    '                \'Significant\': sig_star(p)\n'
-    '            })\n'
-    '            print(f"  {st[:35]:35s} \\u00d7 {cg:30s} N={n:4d} n_st={n_st:3d}  p={p:.4f}")'
-))
+# ── Cell 6: Test 1 — SEX enrichment per group vs 50:50 ──
+cells.append(new_code_cell("""print("=" * 70)
+print("Test 1: SEX enrichment per group (binomial vs 50:50)")
+print("=" * 70)
 
-# ── Cell 9: Test 4 — SEX × Predisposition per cancer group ──
-cells.append(new_code_cell(
-    '# ── Test 4: SEX \\u00d7 Predisposition per cancer group ──\n'
-    'print("=" * 70)\n'
-    'print("Test 4: SEX \\u00d7 Predisposition per cancer group")\n'
-    'print("=" * 70)\n\n'
-    'sub = df[df[\'SEX\'].isin([\'Female\', \'Male\'])].copy()\n'
-    'sub = sub[sub[\'PRED_BINARY\'].isin([\'Any predisposition\', \'No predisposition\'])].copy()\n\n'
-    'for cg in sorted(sub[\'CANCER_GROUP\'].unique()):\n'
-    '    g = sub[sub[\'CANCER_GROUP\'] == cg]\n'
-    '    n = len(g)\n'
-    '    if n < 20:\n'
-    '        continue\n'
-    '    ctab = pd.crosstab(g[\'SEX\'], g[\'PRED_BINARY\'])\n'
-    '    if ctab.shape != (2, 2):\n'
-    '        continue\n'
-    '    if ctab.min().min() < 5:\n'
-    '        odds, p = fisher_exact(ctab)\n'
-    '        test_name = \'Fisher\'\n'
-    '    else:\n'
-    '        chi2, p, _, _ = chi2_contingency(ctab, correction=True)\n'
-    '        test_name = \'Chi2\'\n\n'
-    '    # Effect: difference in %Female between Pred and NoPred\n'
-    '    pct_f_pred = ctab.loc[\'Female\', \'Any predisposition\'] / ctab[\'Any predisposition\'].sum() if ctab[\'Any predisposition\'].sum() > 0 else 0\n'
-    '    pct_f_nopred = ctab.loc[\'Female\', \'No predisposition\'] / ctab[\'No predisposition\'].sum() if ctab[\'No predisposition\'].sum() > 0 else 0\n'
-    '    effect = pct_f_pred - pct_f_nopred\n\n'
-    '    results_ph2.append({\n'
-    '        \'Phase\': \'Phase 2\', \'Comparison\': \'SEX \\u00d7 Predisposition\',\n'
-    '        \'Test\': test_name, \'Group\': cg, \'N\': n,\n'
-    '        \'N_events\': ctab.values.sum(), \'Statistic\': test_name,\n'
-    '        \'p_value\': round(p, 6), \'Effect_Size\': round(effect, 4),\n'
-    '        \'Significant\': sig_star(p)\n'
-    '    })\n'
-    '    print(f"  {cg:40s} N={n:4d}  p={p:.4f}  {sig_star(p)}")\n\n'
-    '# Heatmap: %Female by Predisposition status per cancer group\n'
-    'pred_rate = (sub.groupby([\'CANCER_GROUP\', \'PRED_BINARY\'])[\'SEX\']\n'
-    '    .apply(lambda x: (x == \'Female\').mean()).reset_index())\n'
-    'pred_rate_pivot = pred_rate.pivot(index=\'CANCER_GROUP\', columns=\'PRED_BINARY\', values=\'SEX\').dropna()\n'
-    'if len(pred_rate_pivot) > 0:\n'
-    '    fig = px.imshow(pred_rate_pivot.values,\n'
-    '                    x=pred_rate_pivot.columns, y=pred_rate_pivot.index,\n'
-    '                    text_auto=\'.0%\', aspect=\'auto\',\n'
-    '                    color_continuous_scale=\'RdBu_r\',\n'
-    '                    title=\'%Female by Predisposition status per cancer group\',\n'
-    '                    zmin=0, zmax=1)\n'
-    '    fig.update_layout(xaxis_tickangle=0, height=600, width=500)\n'
-    '    try: fig.show()\n'
-    '    except: pass'
-))
+sex_sub = df[df["SEX"].isin(["Female", "Male"])].copy()
+overall_counts = sex_sub["SEX"].value_counts()
+print(f"Overall sex distribution: {overall_counts.to_dict()}")
+print(f"Overall %Female: {overall_counts.get('Female', 0) / len(sex_sub) * 100:.1f}%")
 
-# ── Cell 10: Test 5 — Race distribution per cancer group ──
-cells.append(new_code_cell(
-    '# ── Test 5: Race distribution per cancer group ──\n'
-    'print("=" * 70)\n'
-    'print("Test 5: Race distribution per cancer group")\n'
-    'print("=" * 70)\n\n'
-    '# Collapse race to major categories\n'
-    'race_map = {\n'
-    '    \'White\': \'White\', \'Black or African American\': \'Black\',\n'
-    '    \'Asian\': \'Asian\', \'American Indian or Alaska Native\': \'Other\',\n'
-    '    \'Native Hawaiian or Other Pacific Islander\': \'Other\',\n'
-    '    \'Unknown\': \'Unknown\', \'Not Reported\': \'Unknown\', \'Reported Unknown\': \'Unknown\'\n'
-    '}\n'
-    'df[\'RACE_GROUP\'] = df[\'RACE\'].map(race_map).fillna(\'Unknown\')\n\n'
-    'sub = df[df[\'RACE_GROUP\'] != \'Unknown\'].copy()\n'
-    'overall_white = (sub[\'RACE_GROUP\'] == \'White\').mean()\n'
-    'print(f"Overall %White (excluding Unknown): {overall_white*100:.1f}%")\n\n'
-    'for group in sorted(sub[\'CANCER_GROUP\'].unique()):\n'
-    '    g = sub[sub[\'CANCER_GROUP\'] == group]\n'
-    '    n = len(g)\n'
-    '    if n < 20:\n'
-    '        continue\n'
-    '    n_white = (g[\'RACE_GROUP\'] == \'White\').sum()\n'
-    '    pct_white = n_white / n * 100\n'
-    '    p = binom_test_proportion(n_white, n, overall_white)\n'
-    '    effect = pct_white - overall_white * 100\n'
-    '    results_ph2.append({\n'
-    '        \'Phase\': \'Phase 2\', \'Comparison\': \'Race distribution (White proportion)\',\n'
-    '        \'Test\': \'Binomial\', \'Group\': group, \'N\': n,\n'
-    '        \'N_events\': n_white, \'Statistic\': f\'{pct_white:.1f}%W\',\n'
-    '        \'p_value\': round(p, 6), \'Effect_Size\': round(effect, 2),\n'
-    '        \'Significant\': sig_star(p)\n'
-    '    })\n'
-    '    print(f"  {group:40s} N={n:4d}  %White={pct_white:5.1f}%  p={p:.4f}  {sig_star(p)}")'
-))
+for group in sorted(sex_sub["CANCER_GROUP"].unique()):
+    g = sex_sub[sex_sub["CANCER_GROUP"] == group]
+    n = len(g)
+    if n < 20:
+        continue
+    n_f = (g["SEX"] == "Female").sum()
+    n_m = (g["SEX"] == "Male").sum()
+    pct_f = n_f / n * 100
+    pct_m = n_m / n * 100
+    p = binom_test(n_f, n, 0.5, alternative="two-sided")
+    enriched = "Female" if n_f > n_m else "Male"
+    effect = (n_f - n_m) / n
+    results_ph2.append({
+        "FDR_Family": "SEX enrichment",
+        "Phase": "Phase 2",
+        "Comparison": "SEX enrichment",
+        "Test": "Binomial",
+        "Group": group,
+        "N": n,
+        "N_events": n_f,
+        "Statistic": f"{pct_f:.1f}%F",
+        "p_value": round(p, 6),
+        "Effect_Size": round(effect, 4),
+        "Significant": sig_star(p)
+    })
+    print(f"  {group:40s} N={n:4d}  M={n_m:4d}  F={n_f:4d}  %M={pct_m:5.1f}  %F={pct_f:5.1f}  p={p:.4f}  {sig_star(p)}  enriched={enriched}")
 
-# ── Cell 11: Phase 2 FDR correction + display + save ──
-cells.append(new_code_cell(
-    '# ── Phase 2: FDR correction, display, and save ──\n'
-    'df_ph2 = pd.DataFrame(results_ph2)\n\n'
-    'if len(df_ph2) > 0:\n'
-    '    # FDR within Phase 2\n'
-    '    pvals = df_ph2[\'p_value\'].values\n'
-    '    reject, qvals, _, _ = smm.multipletests(pvals, method=\'fdr_bh\')\n'
-    '    df_ph2[\'FDR_WithinPhase\'] = qvals\n\n'
-    '    print(f"Phase 2: {len(df_ph2)} total tests")\n'
-    '    print(f"  Significant (p<0.05): {(df_ph2[\'p_value\'] < 0.05).sum()}")\n'
-    '    print(f"  FDR-significant (q<0.05): {(df_ph2[\'FDR_WithinPhase\'] < 0.05).sum()}")\n\n'
-    '    # Display without background_gradient\n'
-    '    display(df_ph2.style.format({\n'
-    '        \'p_value\': \'{:.6f}\', \'Effect_Size\': \'{:.2f}\', \'FDR_WithinPhase\': \'{:.4f}\'\n'
-    '    }))\n\n'
-    '    # Save Phase 2 partial\n'
-    '    out_dir = \'/home/alon/menow_home_ass/notebooks/clinical_associations\'\n'
-    '    df_ph2.to_csv(f\'{out_dir}/clinical_associations_phase2.csv\', index=False)\n'
-    '    print(f"\\nSaved Phase 2 results ({len(df_ph2)} rows)")\n'
-    'else:\n'
-    '    print("No Phase 2 results to display.")'
-))
+df_test1 = pd.DataFrame([r for r in results_ph2 if r["Comparison"] == "SEX enrichment"])
+if len(df_test1) > 0:
+    df_test1 = df_test1.sort_values("Effect_Size")
+    fig = go.Figure()
+    pct_m_vals = [100 - float(r["Statistic"].replace("%F", "")) for _, r in df_test1.iterrows()]
+    pct_f_vals = [float(r["Statistic"].replace("%F", "")) for _, r in df_test1.iterrows()]
+    fig.add_trace(go.Bar(
+        y=df_test1["Group"], x=pct_m_vals,
+        name="%Male", orientation="h",
+        marker_color="steelblue",
+        text=[f"{v:.1f}%" for v in pct_m_vals],
+        textposition="inside",
+    ))
+    fig.add_trace(go.Bar(
+        y=df_test1["Group"], x=pct_f_vals,
+        name="%Female", orientation="h",
+        marker_color="lightcoral",
+        text=[f"{v:.1f}%" for v in pct_f_vals],
+        textposition="inside",
+    ))
+    sig_map = {"***": "darkred", "**": "red", "*": "lightcoral", "ns": "grey"}
+    star_colors = [sig_map.get(s, "grey") for s in df_test1["Significant"]]
+    fig.add_trace(go.Scatter(
+        y=df_test1["Group"],
+        x=[105] * len(df_test1),
+        mode="text",
+        text=df_test1["Significant"],
+        textfont=dict(color=star_colors, size=14),
+        name="significance",
+        showlegend=False
+    ))
+    fig.update_layout(
+        title="SEX composition per cancer group (binomial vs 50:50)",
+        xaxis_title="Percent",
+        barmode="overlay",
+        height=max(400, 25 * len(df_test1)),
+        width=900,
+        bargap=0.15,
+        xaxis=dict(range=[0, 115])
+    )
+    fig.add_vline(x=50, line_dash="dash", line_color="black", opacity=0.5)
+    try:
+        fig.show()
+    except Exception:
+        pass
+    print(f"\\nTest 1 complete: {len(df_test1)} groups tested")"""))
+
+# ── Cell 7: Test 2 — Predisposition enrichment per group (Fisher exact) ──
+cells.append(new_code_cell("""print("=" * 70)
+print("Test 2: Predisposition enrichment per group (Fisher exact)")
+print("=" * 70)
+
+pred_counts = df["CANCER_PREDISPOSITIONS"].value_counts()
+print(f"\\nPredisposition categories found ({len(pred_counts)}):")
+for v, c in pred_counts.items():
+    print(f"  {str(v)[:50]:50s} N={c}")
+
+pred_results = run_enrichment(df, "CANCER_PREDISPOSITIONS")
+print(f"\\nTotal enrichment tests: {len(pred_results)}")
+
+for r in pred_results:
+    results_ph2.append({
+        "FDR_Family": "Predisposition enrichment",
+        "Phase": "Phase 2",
+        "Comparison": "Predisposition enrichment",
+        "Test": "Fisher exact",
+        "Group": str(r["value"]) + " -> " + str(r["group"]),
+        "N": r["n_group"],
+        "N_events": r["n_with_val_in_group"],
+        "Statistic": round(r["odds_ratio"], 4),
+        "p_value": round(r["p_value"], 6),
+        "Effect_Size": round(r["odds_ratio"], 4),
+        "Significant": sig_star(r["p_value"])
+    })
+    if r["p_value"] < 0.05:
+        print(f"  {str(r['value'])[:40]:40s} x {str(r['group'])[:35]:35s} "
+              f"N={r['n_group']:4d}  n_pred={r['n_with_val_in_group']:3d}  "
+              f"OR={r['odds_ratio']:.2f}  p={r['p_value']:.4f}  {sig_star(r['p_value'])}")
+
+# Heatmap: predisposition x cancer group with counts
+pred_cross = pd.crosstab(df["CANCER_PREDISPOSITIONS"], df["CANCER_GROUP"])
+n20 = df["CANCER_GROUP"].value_counts()
+n20 = n20[n20 >= 20].index
+pred_cross = pred_cross[[c for c in pred_cross.columns if c in n20]]
+
+fig = px.imshow(
+    pred_cross.values,
+    x=pred_cross.columns.tolist(),
+    y=pred_cross.index.tolist(),
+    text_auto=True,
+    aspect="auto",
+    color_continuous_scale="YlOrRd",
+    title="Predisposition x Cancer Group: Counts",
+    height=max(400, 20 * len(pred_cross)),
+    width=max(600, 100 * len(pred_cross.columns))
+)
+fig.update_layout(xaxis_tickangle=45)
+try:
+    fig.show()
+except Exception:
+    pass"""))
+
+# ── Cell 8: Test 3 — SUBTYPE descriptive heatmap ──
+cells.append(new_code_cell("""print("=" * 70)
+print("Test 3: SUBTYPE descriptive heatmap (no p-values)")
+print("=" * 70)
+
+subtype_cross = pd.crosstab(df["MOLECULAR_SUBTYPE"], df["CANCER_GROUP"])
+n20 = df["CANCER_GROUP"].value_counts()
+n20 = n20[n20 >= 20].index
+subtype_cross = subtype_cross[[c for c in subtype_cross.columns if c in n20]]
+
+subtype_totals = subtype_cross.sum(axis=1).sort_values(ascending=False)
+if len(subtype_totals) > 30:
+    top30 = subtype_totals.head(30).index
+    subtype_cross = subtype_cross.loc[top30]
+    print(f"Showing top 30 subtypes (out of {len(subtype_totals)} total)")
+
+fig = px.imshow(
+    subtype_cross.values,
+    x=subtype_cross.columns.tolist(),
+    y=subtype_cross.index.tolist(),
+    text_auto=True,
+    aspect="auto",
+    color_continuous_scale="YlGnBu",
+    title="Molecular Subtype x Cancer Group: Counts (descriptive, no tests)",
+    height=max(500, 25 * len(subtype_cross)),
+    width=max(800, 100 * len(subtype_cross.columns))
+)
+fig.update_layout(xaxis_tickangle=45)
+try:
+    fig.show()
+except Exception:
+    pass
+print(f"Heatmap: {len(subtype_cross)} subtypes x {len(subtype_cross.columns)} groups")"""))
+
+# ── Cell 9: Test 4 — SEX x PRED 3-way per group ──
+cells.append(new_code_cell("""print("=" * 70)
+print("Test 4: SEX x Predisposition per group")
+print("=" * 70)
+
+def has_pred(val):
+    if pd.isna(val) or str(val).strip() in ("", "nan", "Unknown", "No predisposition"):
+        return "No predisposition"
+    return "Any predisposition"
+
+df["PRED_BINARY"] = df["CANCER_PREDISPOSITIONS"].apply(has_pred)
+sub = df[df["SEX"].isin(["Female", "Male"])].copy()
+sub = sub[sub["PRED_BINARY"].isin(["Any predisposition", "No predisposition"])].copy()
+
+sex_pred_data = []
+for cg in sorted(sub["CANCER_GROUP"].unique()):
+    g = sub[sub["CANCER_GROUP"] == cg]
+    n = len(g)
+    if n < 20:
+        continue
+    ctab = pd.crosstab(g["SEX"], g["PRED_BINARY"])
+    if ctab.shape != (2, 2):
+        continue
+    try:
+        if ctab.min().min() < 5:
+            odds_ratio, p = fisher_exact(ctab)
+            test_name = "Fisher"
+            eff = odds_ratio
+        else:
+            chi2, p, dof, expected = chi2_contingency(ctab, correction=True)
+            test_name = "Chi2"
+            n_total = ctab.values.sum()
+            cramer_v = math.sqrt(chi2 / (n_total * (min(ctab.shape) - 1))) if n_total > 0 else 0
+            eff = cramer_v
+    except Exception:
+        p, eff = 1.0, 0.0
+        test_name = "Fisher"
+
+    pct_f_pred = (ctab.loc["Female", "Any predisposition"] / ctab["Any predisposition"].sum() * 100
+                  if "Any predisposition" in ctab.columns and ctab["Any predisposition"].sum() > 0 else 0)
+    pct_f_nopred = (ctab.loc["Female", "No predisposition"] / ctab["No predisposition"].sum() * 100
+                    if "No predisposition" in ctab.columns and ctab["No predisposition"].sum() > 0 else 0)
+
+    results_ph2.append({
+        "FDR_Family": "SEX x Predisposition",
+        "Phase": "Phase 2",
+        "Comparison": "SEX x Predisposition",
+        "Test": test_name,
+        "Group": cg,
+        "N": n,
+        "N_events": n,
+        "Statistic": round(eff, 4),
+        "p_value": round(p, 6),
+        "Effect_Size": round(eff, 4),
+        "Significant": sig_star(p)
+    })
+    sex_pred_data.append({
+        "Group": cg, "pct_f_pred": pct_f_pred,
+        "pct_f_nopred": pct_f_nopred, "p": p
+    })
+    print(f"  {cg:40s} N={n:4d}  %F(Pred)={pct_f_pred:5.1f}  %F(NoPred)={pct_f_nopred:5.1f}  p={p:.4f}  {sig_star(p)}")
+
+# Side-by-side %Female bars
+if sex_pred_data:
+    sp_df = pd.DataFrame(sex_pred_data).sort_values("p")
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=sp_df["Group"], y=sp_df["pct_f_pred"],
+        name="%Female (Any predisposition)",
+        marker_color="indianred",
+        text=sp_df["pct_f_pred"].apply(lambda v: f"{v:.1f}%"),
+        textposition="outside"
+    ))
+    fig.add_trace(go.Bar(
+        x=sp_df["Group"], y=sp_df["pct_f_nopred"],
+        name="%Female (No predisposition)",
+        marker_color="steelblue",
+        text=sp_df["pct_f_nopred"].apply(lambda v: f"{v:.1f}%"),
+        textposition="outside"
+    ))
+    fig.update_layout(
+        title="%Female by Predisposition status per cancer group",
+        xaxis_tickangle=45,
+        barmode="group",
+        height=500, width=1000,
+        yaxis_title="%Female"
+    )
+    try:
+        fig.show()
+    except Exception:
+        pass"""))
+
+# ── Cell 10: Test 5 — Race enrichment per group (Fisher exact) ──
+cells.append(new_code_cell("""print("=" * 70)
+print("Test 5: Race enrichment per group (Fisher exact)")
+print("=" * 70)
+
+race_sub = df[~df["RACE"].isin(["Unknown", "nan"])].copy()
+race_counts = race_sub["RACE"].value_counts()
+print(f"\\nRace categories (excluding Unknown):")
+for v, c in race_counts.items():
+    print(f"  {v:40s} N={c}")
+
+race_results = run_enrichment(race_sub, "RACE")
+print(f"\\nTotal enrichment tests: {len(race_results)}")
+
+for r in race_results:
+    results_ph2.append({
+        "FDR_Family": "Race enrichment",
+        "Phase": "Phase 2",
+        "Comparison": "Race enrichment",
+        "Test": "Fisher exact",
+        "Group": str(r["value"]) + " -> " + str(r["group"]),
+        "N": r["n_group"],
+        "N_events": r["n_with_val_in_group"],
+        "Statistic": round(r["odds_ratio"], 4),
+        "p_value": round(r["p_value"], 6),
+        "Effect_Size": round(r["odds_ratio"], 4),
+        "Significant": sig_star(r["p_value"])
+    })
+    if r["p_value"] < 0.05:
+        print(f"  {str(r['value'])[:40]:40s} x {str(r['group'])[:35]:35s} "
+              f"N={r['n_group']:4d}  n_race={r['n_with_val_in_group']:3d}  "
+              f"OR={r['odds_ratio']:.2f}  p={r['p_value']:.4f}  {sig_star(r['p_value'])}")
+
+# Heatmap: race x cancer group with counts
+race_cross = pd.crosstab(race_sub["RACE"], race_sub["CANCER_GROUP"])
+n20 = df["CANCER_GROUP"].value_counts()
+n20 = n20[n20 >= 20].index
+race_cross = race_cross[[c for c in race_cross.columns if c in n20]]
+
+fig = px.imshow(
+    race_cross.values,
+    x=race_cross.columns.tolist(),
+    y=race_cross.index.tolist(),
+    text_auto=True,
+    aspect="auto",
+    color_continuous_scale="PuBuGn",
+    title="Race x Cancer Group: Counts",
+    height=max(400, 25 * len(race_cross)),
+    width=max(600, 100 * len(race_cross.columns))
+)
+fig.update_layout(xaxis_tickangle=45)
+try:
+    fig.show()
+except Exception:
+    pass"""))
+
+# ── Cell 11: Phase 2 FDR + display ──
+cells.append(new_code_cell("""df_ph2 = pd.DataFrame(results_ph2)
+
+if len(df_ph2) > 0:
+    df_ph2["FDR_WithinFamily"] = np.nan
+    families = df_ph2["FDR_Family"].unique() if "FDR_Family" in df_ph2.columns else ["All"]
+    for fam in families:
+        mask = df_ph2["FDR_Family"] == fam
+        pvals = df_ph2.loc[mask, "p_value"].values
+        if len(pvals) > 1:
+            reject, qvals, _, _ = smm.multipletests(pvals, method="fdr_bh")
+            df_ph2.loc[mask, "FDR_WithinFamily"] = qvals
+        elif len(pvals) == 1:
+            df_ph2.loc[mask, "FDR_WithinFamily"] = pvals[0]
+
+    print(f"\\nPhase 2: {len(df_ph2)} total tests")
+    print(f"Families: {df_ph2['FDR_Family'].value_counts().to_dict()}")
+    sig_raw = (df_ph2["p_value"] < 0.05).sum()
+    sig_fdr = (df_ph2["FDR_WithinFamily"] < 0.05).sum()
+    print(f"Significant (p<0.05): {sig_raw}")
+    print(f"FDR-significant (q<0.05): {sig_fdr}")
+
+    display_cols = ["Phase", "Comparison", "Test", "Group", "N", "N_events",
+                    "Statistic", "p_value", "FDR_WithinFamily", "Significant", "Effect_Size"]
+    avail = [c for c in display_cols if c in df_ph2.columns]
+    display(df_ph2[avail].style.format({
+        "p_value": "{:.6f}",
+        "FDR_WithinFamily": "{:.4f}",
+        "Effect_Size": "{:.4f}"
+    }))
+else:
+    print("No Phase 2 results.")"""))
 
 # ── Cell 12: Phase 3 header ──
 cells.append(new_markdown_cell(
     '## Phase 3: Numeric Comparisons\n\n'
     'Tests: Kruskal-Wallis (global across all cancer groups), per-group '
-    'Mann-Whitney (each group vs all others), and Spearman correlations between numeric variables.'
+    'Mann-Whitney (each group vs all others), and Spearman correlations '
+    'between numeric variables. FDR is applied within each Comparison family.'
 ))
 
 # ── Cell 13: Phase 3 helpers ──
-cells.append(new_code_cell(
-    '# ── Phase 3 helpers ──\n\n'
-    'def kw_dunn(df, num_col, cat_col, min_n=20):\n'
-    '    """Kruskal-Wallis test with Mann-Whitney post-hoc and \\u03b5\\u00b2 effect size."""\n'
-    '    groups = df[[num_col, cat_col]].dropna()\n'
-    '    groups = groups[groups[cat_col].isin(\n'
-    '        groups[cat_col].value_counts()[groups[cat_col].value_counts() >= min_n].index)]\n'
-    '    cat_names = groups[cat_col].unique()\n'
-    '    cat_data = {name: groups.loc[groups[cat_col] == name, num_col].values for name in cat_names}\n\n'
-    '    if len(cat_data) < 2:\n'
-    '        return None, None, None, None\n\n'
-    '    h_stat, p_val = kruskal(*cat_data.values())\n\n'
-    '    n_total = sum(len(v) for v in cat_data.values())\n'
-    '    k = len(cat_data)\n'
-    '    if n_total > k:\n'
-    '        eps_sq = (h_stat - k + 1) / (n_total - k)\n'
-    '    else:\n'
-    '        eps_sq = np.nan\n\n'
-    '    return h_stat, p_val, eps_sq, list(cat_data.keys())\n\n'
-    'def boxplot_by_group(df, num_col, cat_col, title, ylabel, min_n=20):\n'
-    '    """Boxplot of numeric variable grouped by categorical."""\n'
-    '    groups = df[[num_col, cat_col]].dropna()\n'
-    '    groups = groups[groups[cat_col].isin(\n'
-    '        groups[cat_col].value_counts()[groups[cat_col].value_counts() >= min_n].index)]\n'
-    '    medians = groups.groupby(cat_col)[num_col].median().sort_values()\n'
-    '    groups[cat_col] = pd.Categorical(groups[cat_col], categories=medians.index, ordered=True)\n'
-    '    fig = px.box(groups, x=cat_col, y=num_col,\n'
-    '                 title=title,\n'
-    '                 points="outliers",\n'
-    '                 color=cat_col, color_discrete_sequence=px.colors.qualitative.Set3)\n'
-    '    fig.update_layout(xaxis_tickangle=45, height=500, width=1000,\n'
-    '                      yaxis_title=ylabel, showlegend=False)\n'
-    '    try: fig.show()\n'
-    '    except: pass\n\n'
-    'def mw_per_group(df, num_col, cat_col, comparison_name, min_n=20):\n'
-    '    """Mann-Whitney test: each group vs all others. Returns list of result dicts."""\n'
-    '    results = []\n'
-    '    for group in df[cat_col].value_counts().index:\n'
-    '        g = df[df[cat_col] == group][num_col].dropna()\n'
-    '        rest = df[df[cat_col] != group][num_col].dropna()\n'
-    '        if len(g) < min_n or len(rest) < min_n:\n'
-    '            continue\n'
-    '        try:\n'
-    '            u_stat, p = mannwhitneyu(g, rest, alternative=\'two-sided\')\n'
-    '        except ValueError:\n'
-    '            continue\n'
-    '        n1, n2 = len(g), len(rest)\n'
-    '        r = 1 - (2 * u_stat) / (n1 * n2) if n1 * n2 > 0 else 0\n'
-    '        results.append({\n'
-    '            \'Phase\': \'Phase 3\', \'Comparison\': comparison_name,\n'
-    '            \'Test\': \'Mann-Whitney\', \'Group\': group,\n'
-    '            \'N\': n1 + n2, \'N_events\': n1,\n'
-    '            \'Statistic\': round(u_stat, 2), \'p_value\': round(p, 6),\n'
-    '            \'Effect_Size\': round(r, 4), \'Significant\': sig_star(p)\n'
-    '        })\n'
-    '    return results\n\n'
-    'results_ph3 = []\n'
-    'print("\u2705 Phase 3 helpers defined")'
-))
+cells.append(new_code_cell("""def kw_per_group(df, num_col, cat_col="CANCER_GROUP", min_n=20):
+    results = []
+    sub = df[[num_col, cat_col]].dropna()
+    sub = sub[sub[cat_col].isin(
+        sub[cat_col].value_counts()[sub[cat_col].value_counts() >= min_n].index)]
 
-# ── Cell 14: Test 6 — AGE × CANCER_GROUP ──
-cells.append(new_code_cell(
-    '# ── Test 6: AGE \\u00d7 CANCER_GROUP ──\n'
-    'print("=" * 70)\n'
-    'print("Test 6: AGE \\u00d7 CANCER_GROUP")\n'
-    'print("=" * 70)\n\n'
-    '# Global KW test\n'
-    'h_stat, p_val, eps_sq, groups = kw_dunn(df, \'AGE\', \'CANCER_GROUP\')\n'
-    'if h_stat is not None:\n'
-    '    results_ph3.append({\n'
-    '        \'Phase\': \'Phase 3\', \'Comparison\': \'AGE \\u00d7 CANCER_GROUP\',\n'
-    '        \'Test\': \'Kruskal-Wallis\', \'Group\': \'global\',\n'
-    '        \'N\': df[\'AGE\'].notna().sum(),\n'
-    '        \'N_events\': df[\'AGE\'].notna().sum(),\n'
-    '        \'Statistic\': round(h_stat, 4),\n'
-    '        \'p_value\': round(p_val, 6),\n'
-    '        \'Effect_Size\': round(eps_sq, 4),\n'
-    '        \'Significant\': sig_star(p_val)\n'
-    '    })\n'
-    '    print(f"Kruskal-Wallis: H={h_stat:.4f}, p={p_val:.6f}, \\u03b5\\u00b2={eps_sq:.4f}")\n\n'
-    '# Per-group MW tests\n'
-    'mw_results = mw_per_group(df, \'AGE\', \'CANCER_GROUP\', \'AGE \\u00d7 CANCER_GROUP\')\n'
-    'results_ph3.extend(mw_results)\n'
-    'sig_mw = [r for r in mw_results if r[\'p_value\'] < 0.05]\n'
-    'print(f"Per-group MW tests: {len(mw_results)} total, {len(sig_mw)} significant (p<0.05)")\n\n'
-    'boxplot_by_group(df, \'AGE\', \'CANCER_GROUP\',\n'
-    '                 f\'AGE distribution by CANCER_GROUP (KW p={p_val:.4f}, \\u03b5\\u00b2={eps_sq:.3f})\',\n'
-    '                 \'AGE (years)\')'
-))
+    # Global KW
+    groups_data = [sub[sub[cat_col] == g][num_col].values for g in sub[cat_col].unique()]
+    if len(groups_data) >= 2:
+        h, p = kruskal(*groups_data)
+        n_total = len(sub)
+        k = len(groups_data)
+        eps_sq = (h - k + 1) / (n_total - k) if n_total > k else 0
+        results.append({
+            "Comparison": f"{num_col} x {cat_col}",
+            "Test": "Kruskal-Wallis", "Group": "global",
+            "N": n_total, "N_events": n_total,
+            "Statistic": f"H={h:.4f}",
+            "p_value": p, "Effect_Size": round(eps_sq, 4)
+        })
 
-# ── Cell 15: Test 7 — TF × CANCER_GROUP ──
-cells.append(new_code_cell(
-    '# ── Test 7: TUMOR_FRACTION \\u00d7 CANCER_GROUP ──\n'
-    'print("=" * 70)\n'
-    'print("Test 7: TUMOR_FRACTION \\u00d7 CANCER_GROUP")\n'
-    'print("=" * 70)\n\n'
-    'h_stat, p_val, eps_sq, groups = kw_dunn(df, \'TUMOR_FRACTION\', \'CANCER_GROUP\')\n'
-    'if h_stat is not None:\n'
-    '    results_ph3.append({\n'
-    '        \'Phase\': \'Phase 3\', \'Comparison\': \'TF \\u00d7 CANCER_GROUP\',\n'
-    '        \'Test\': \'Kruskal-Wallis\', \'Group\': \'global\',\n'
-    '        \'N\': df[\'TUMOR_FRACTION\'].notna().sum(),\n'
-    '        \'N_events\': df[\'TUMOR_FRACTION\'].notna().sum(),\n'
-    '        \'Statistic\': round(h_stat, 4),\n'
-    '        \'p_value\': round(p_val, 6),\n'
-    '        \'Effect_Size\': round(eps_sq, 4),\n'
-    '        \'Significant\': sig_star(p_val)\n'
-    '    })\n'
-    '    print(f"Kruskal-Wallis: H={h_stat:.4f}, p={p_val:.6f}, \\u03b5\\u00b2={eps_sq:.4f}")\n\n'
-    'mw_results = mw_per_group(df, \'TUMOR_FRACTION\', \'CANCER_GROUP\', \'TF \\u00d7 CANCER_GROUP\')\n'
-    'results_ph3.extend(mw_results)\n'
-    'sig_mw = [r for r in mw_results if r[\'p_value\'] < 0.05]\n'
-    'print(f"Per-group MW tests: {len(mw_results)} total, {len(sig_mw)} significant (p<0.05)")\n\n'
-    'boxplot_by_group(df, \'TUMOR_FRACTION\', \'CANCER_GROUP\',\n'
-    '                 f\'TF distribution by CANCER_GROUP (KW p={p_val:.4f}, \\u03b5\\u00b2={eps_sq:.3f})\',\n'
-    '                 \'TUMOR_FRACTION\')'
-))
+    # Per-group MW
+    for g_name in sub[cat_col].unique():
+        g_vals = sub[sub[cat_col] == g_name][num_col].values
+        other_vals = sub[sub[cat_col] != g_name][num_col].values
+        try:
+            u, p = mannwhitneyu(g_vals, other_vals, alternative="two-sided")
+        except ValueError:
+            continue
+        n1, n2 = len(g_vals), len(other_vals)
+        z = (u - n1 * n2 / 2) / math.sqrt(n1 * n2 * (n1 + n2 + 1) / 12) if n1 * n2 > 0 else 0
+        r = z / math.sqrt(n1 + n2) if (n1 + n2) > 0 else 0
+        results.append({
+            "Comparison": f"{num_col} x {cat_col}",
+            "Test": "Mann-Whitney", "Group": g_name,
+            "N": len(sub), "N_events": len(g_vals),
+            "Statistic": f"U={u:.1f}",
+            "p_value": p, "Effect_Size": round(r, 4)
+        })
+    return results
 
-# ── Cell 16: Test 8 — TP × CANCER_GROUP ──
-cells.append(new_code_cell(
-    '# ── Test 8: TUMOR_PLOIDY \\u00d7 CANCER_GROUP ──\n'
-    'print("=" * 70)\n'
-    'print("Test 8: TUMOR_PLOIDY \\u00d7 CANCER_GROUP")\n'
-    'print("=" * 70)\n\n'
-    'h_stat, p_val, eps_sq, groups = kw_dunn(df, \'TUMOR_PLOIDY\', \'CANCER_GROUP\')\n'
-    'if h_stat is not None:\n'
-    '    results_ph3.append({\n'
-    '        \'Phase\': \'Phase 3\', \'Comparison\': \'TP \\u00d7 CANCER_GROUP\',\n'
-    '        \'Test\': \'Kruskal-Wallis\', \'Group\': \'global\',\n'
-    '        \'N\': df[\'TUMOR_PLOIDY\'].notna().sum(),\n'
-    '        \'N_events\': df[\'TUMOR_PLOIDY\'].notna().sum(),\n'
-    '        \'Statistic\': round(h_stat, 4),\n'
-    '        \'p_value\': round(p_val, 6),\n'
-    '        \'Effect_Size\': round(eps_sq, 4),\n'
-    '        \'Significant\': sig_star(p_val)\n'
-    '    })\n'
-    '    print(f"Kruskal-Wallis: H={h_stat:.4f}, p={p_val:.6f}, \\u03b5\\u00b2={eps_sq:.4f}")\n\n'
-    'mw_results = mw_per_group(df, \'TUMOR_PLOIDY\', \'CANCER_GROUP\', \'TP \\u00d7 CANCER_GROUP\')\n'
-    'results_ph3.extend(mw_results)\n'
-    'sig_mw = [r for r in mw_results if r[\'p_value\'] < 0.05]\n'
-    'print(f"Per-group MW tests: {len(mw_results)} total, {len(sig_mw)} significant (p<0.05)")\n\n'
-    'boxplot_by_group(df, \'TUMOR_PLOIDY\', \'CANCER_GROUP\',\n'
-    '                 f\'TP distribution by CANCER_GROUP (KW p={p_val:.4f}, \\u03b5\\u00b2={eps_sq:.3f})\',\n'
-    '                 \'TUMOR_PLOIDY\')'
-))
+def boxplot_numeric(df, num_col, cat_col, title, ylabel, min_n=20):
+    sub = df[[num_col, cat_col]].dropna()
+    sub = sub[sub[cat_col].isin(
+        sub[cat_col].value_counts()[sub[cat_col].value_counts() >= min_n].index)]
+    medians = sub.groupby(cat_col)[num_col].median().sort_values()
+    sub[cat_col] = pd.Categorical(sub[cat_col], categories=medians.index, ordered=True)
+    fig = px.box(sub, x=cat_col, y=num_col, title=title,
+                 points="outliers", color=cat_col,
+                 color_discrete_sequence=px.colors.qualitative.Set3)
+    fig.update_layout(xaxis_tickangle=45, height=500, width=1000,
+                      yaxis_title=ylabel, showlegend=False)
+    try:
+        fig.show()
+    except Exception:
+        pass
 
-# ── Cell 17: Tests 9-11 — Numeric × Numeric correlations ──
-cells.append(new_code_cell(
-    '# ── Tests 9-11: Numeric \\u00d7 Numeric correlations ──\n\n'
-    'def spearman_test(df, col1, col2, label1, label2):\n'
-    '    """Spearman rank correlation with scatter plot."""\n'
-    '    sub = df[[col1, col2]].dropna()\n'
-    '    if len(sub) < 20:\n'
-    '        print(f"  Not enough data: {len(sub)} < 20")\n'
-    '        return None\n\n'
-    '    rho, p_val = spearmanr(sub[col1], sub[col2])\n\n'
-    '    fig = px.scatter(sub, x=col1, y=col2,\n'
-    '                     title=f\'{label1} vs {label2} (\\u03c1={rho:.4f}, p={p_val:.4f})\',\n'
-    '                     opacity=0.6, trendline=\'lowess\')\n'
-    '    fig.update_layout(height=500, width=600)\n'
-    '    try: fig.show()\n'
-    '    except: pass\n\n'
-    '    print(f"  Spearman \\u03c1={rho:.4f}, p={p_val:.6f}, N={len(sub)}")\n'
-    '    return {\n'
-    '        \'Phase\': \'Phase 3\', \'Comparison\': f\'{label1} \\u00d7 {label2}\',\n'
-    '        \'Test\': \'Spearman\', \'Group\': \'global\',\n'
-    '        \'N\': len(sub), \'N_events\': len(sub),\n'
-    '        \'Statistic\': round(rho, 4),\n'
-    '        \'p_value\': round(p_val, 6),\n'
-    '        \'Effect_Size\': round(rho, 4),\n'
-    '        \'Significant\': sig_star(p_val)\n'
-    '    }\n\n'
-    'print("=== Numeric \\u00d7 Numeric Correlations ===")\n\n'
-    'res9 = spearman_test(df, \'AGE\', \'TUMOR_FRACTION\', \'AGE\', \'TF\')\n'
-    'if res9: results_ph3.append(res9)\n\n'
-    'res10 = spearman_test(df, \'AGE\', \'TUMOR_PLOIDY\', \'AGE\', \'TP\')\n'
-    'if res10: results_ph3.append(res10)\n\n'
-    'res11 = spearman_test(df, \'TUMOR_FRACTION\', \'TUMOR_PLOIDY\', \'TF\', \'TP\')\n'
-    'if res11: results_ph3.append(res11)'
-))
+results_ph3 = []
+print("✅ Phase 3 helpers defined")"""))
 
-# ── Cell 18: Phase 3 results + save ──
-cells.append(new_code_cell(
-    '# ── Phase 3: FDR correction, display, and save ──\n'
-    'df_ph3 = pd.DataFrame(results_ph3)\n\n'
-    'if len(df_ph3) > 0:\n'
-    '    pvals = df_ph3[\'p_value\'].values\n'
-    '    reject, qvals, _, _ = smm.multipletests(pvals, method=\'fdr_bh\')\n'
-    '    df_ph3[\'FDR_WithinPhase\'] = qvals\n\n'
-    '    print(f"Phase 3: {len(df_ph3)} total tests")\n'
-    '    print(f"  Significant (p<0.05): {(df_ph3[\'p_value\'] < 0.05).sum()}")\n'
-    '    print(f"  FDR-significant (q<0.05): {(df_ph3[\'FDR_WithinPhase\'] < 0.05).sum()}")\n\n'
-    '    display(df_ph3.style.format({\n'
-    '        \'p_value\': \'{:.6f}\', \'Effect_Size\': \'{:.4f}\', \'FDR_WithinPhase\': \'{:.4f}\'\n'
-    '    }))\n\n'
-    '    out_dir = \'/home/alon/menow_home_ass/notebooks/clinical_associations\'\n'
-    '    df_ph3.to_csv(f\'{out_dir}/clinical_associations_phase3.csv\', index=False)\n'
-    '    print(f"\\nSaved Phase 3 results ({len(df_ph3)} rows)")\n'
-    'else:\n'
-    '    print("No Phase 3 results to display.")'
-))
+# ── Cell 14: Test 6 — AGE x CANCER_GROUP ──
+cells.append(new_code_cell("""print("=" * 70)
+print("Test 6: AGE x CANCER_GROUP")
+print("=" * 70)
 
-# ── Cell 19: Combine Phase 2 + Phase 3, final FDR, save ──
-cells.append(new_code_cell(
-    '# ── Combine Phase 2 + Phase 3, final FDR, and save ──\n'
-    'combined = pd.concat([df_ph2, df_ph3], ignore_index=True)\n\n'
-    '# Recompute FDR within each phase\n'
-    'combined[\'FDR_WithinPhase\'] = np.nan\n'
-    'for phase in combined[\'Phase\'].unique():\n'
-    '    mask = combined[\'Phase\'] == phase\n'
-    '    pvals = combined.loc[mask, \'p_value\'].values\n'
-    '    reject, qvals, _, _ = smm.multipletests(pvals, method=\'fdr_bh\')\n'
-    '    combined.loc[mask, \'FDR_WithinPhase\'] = qvals\n\n'
-    '# Ensure column order matches survival analysis format\n'
-    'final_cols = [\'Phase\', \'Comparison\', \'Test\', \'Group\', \'N\', \'N_events\',\n'
-    '              \'Statistic\', \'p_value\', \'FDR_WithinPhase\', \'Significant\', \'Effect_Size\']\n'
-    'available_cols = [c for c in final_cols if c in combined.columns]\n'
-    'combined = combined[available_cols]\n\n'
-    'out_dir = \'/home/alon/menow_home_ass/notebooks/clinical_associations\'\n'
-    'os.makedirs(out_dir, exist_ok=True)\n\n'
-    '# Save full results\n'
-    'combined.to_csv(f\'{out_dir}/clinical_associations_results.csv\', index=False)\n\n'
-    '# Save significant summary\n'
-    'sig = combined[combined[\'p_value\'] < 0.05].copy()\n'
-    'sig.to_csv(f\'{out_dir}/clinical_associations_summary.csv\', index=False)\n\n'
-    'print(f"\\nCombined results saved: {len(combined)} total tests, {len(sig)} p<0.05")\n'
-    'print(f"  Phase 2: {len(df_ph2)} rows")\n'
-    'print(f"  Phase 3: {len(df_ph3)} rows")\n'
-    'print(f"  Columns: {list(combined.columns)}")\n'
-    'print(f"\\nOutput CSV: {out_dir}/clinical_associations_results.csv")\n\n'
-    'display(combined.style.format({\n'
-    '    \'p_value\': \'{:.6f}\', \'Effect_Size\': \'{:.4f}\', \'FDR_WithinPhase\': \'{:.4f}\'\n'
-    '}))'
-))
+age_results = kw_per_group(df, "AGE", "CANCER_GROUP")
+for r in age_results:
+    results_ph3.append({
+        "FDR_Family": "AGE x CG",
+        "Phase": "Phase 3",
+        "Comparison": r["Comparison"],
+        "Test": r["Test"],
+        "Group": r["Group"],
+        "N": r["N"],
+        "N_events": r["N_events"],
+        "Statistic": r["Statistic"],
+        "p_value": round(r["p_value"], 6),
+        "Effect_Size": r["Effect_Size"],
+        "Significant": sig_star(r["p_value"])
+    })
+    if r["Test"] == "Kruskal-Wallis":
+        print(f"  KW: {r['Statistic']}, p={r['p_value']:.6f}, eps2={r['Effect_Size']:.4f}")
+
+sig_mw = [r for r in age_results if r["Test"] == "Mann-Whitney" and r["p_value"] < 0.05]
+n_mw = len([r for r in age_results if r["Test"] == "Mann-Whitney"])
+print(f"  Mann-Whitney: {n_mw} tests, {len(sig_mw)} significant (p<0.05)")
+
+n_age = df["AGE"].notna().sum()
+boxplot_numeric(df, "AGE", "CANCER_GROUP",
+                f"AGE distribution by CANCER_GROUP (N={n_age})",
+                "AGE (years)")"""))
+
+# ── Cell 15: Test 7 — TF x CANCER_GROUP ──
+cells.append(new_code_cell("""print("=" * 70)
+print("Test 7: TUMOR_FRACTION x CANCER_GROUP")
+print("=" * 70)
+
+tf_results = kw_per_group(df, "TUMOR_FRACTION", "CANCER_GROUP")
+for r in tf_results:
+    results_ph3.append({
+        "FDR_Family": "TF x CG",
+        "Phase": "Phase 3",
+        "Comparison": r["Comparison"],
+        "Test": r["Test"],
+        "Group": r["Group"],
+        "N": r["N"],
+        "N_events": r["N_events"],
+        "Statistic": r["Statistic"],
+        "p_value": round(r["p_value"], 6),
+        "Effect_Size": r["Effect_Size"],
+        "Significant": sig_star(r["p_value"])
+    })
+    if r["Test"] == "Kruskal-Wallis":
+        print(f"  KW: {r['Statistic']}, p={r['p_value']:.6f}, eps2={r['Effect_Size']:.4f}")
+
+sig_mw = [r for r in tf_results if r["Test"] == "Mann-Whitney" and r["p_value"] < 0.05]
+n_mw = len([r for r in tf_results if r["Test"] == "Mann-Whitney"])
+print(f"  Mann-Whitney: {n_mw} tests, {len(sig_mw)} significant (p<0.05)")
+
+n_tf = df["TUMOR_FRACTION"].notna().sum()
+boxplot_numeric(df, "TUMOR_FRACTION", "CANCER_GROUP",
+                f"TF distribution by CANCER_GROUP (N={n_tf})",
+                "TUMOR_FRACTION")"""))
+
+# ── Cell 16: Test 8 — TP x CANCER_GROUP ──
+cells.append(new_code_cell("""print("=" * 70)
+print("Test 8: TUMOR_PLOIDY x CANCER_GROUP")
+print("=" * 70)
+
+tp_results = kw_per_group(df, "TUMOR_PLOIDY", "CANCER_GROUP")
+for r in tp_results:
+    results_ph3.append({
+        "FDR_Family": "TP x CG",
+        "Phase": "Phase 3",
+        "Comparison": r["Comparison"],
+        "Test": r["Test"],
+        "Group": r["Group"],
+        "N": r["N"],
+        "N_events": r["N_events"],
+        "Statistic": r["Statistic"],
+        "p_value": round(r["p_value"], 6),
+        "Effect_Size": r["Effect_Size"],
+        "Significant": sig_star(r["p_value"])
+    })
+    if r["Test"] == "Kruskal-Wallis":
+        print(f"  KW: {r['Statistic']}, p={r['p_value']:.6f}, eps2={r['Effect_Size']:.4f}")
+
+sig_mw = [r for r in tp_results if r["Test"] == "Mann-Whitney" and r["p_value"] < 0.05]
+n_mw = len([r for r in tp_results if r["Test"] == "Mann-Whitney"])
+print(f"  Mann-Whitney: {n_mw} tests, {len(sig_mw)} significant (p<0.05)")
+
+n_tp = df["TUMOR_PLOIDY"].notna().sum()
+boxplot_numeric(df, "TUMOR_PLOIDY", "CANCER_GROUP",
+                f"TP distribution by CANCER_GROUP (N={n_tp})",
+                "TUMOR_PLOIDY")"""))
+
+# ── Cell 17: Tests 9-11 — Correlations ──
+cells.append(new_code_cell("""print("=" * 70)
+print("Tests 9-11: Numeric correlations (Spearman + LOESS scatter)")
+print("=" * 70)
+
+def spearman_with_plot(df, col1, col2, label1, label2, min_n=20):
+    sub = df[[col1, col2]].dropna()
+    if len(sub) < min_n:
+        print(f"  Skipping {label1}x{label2}: N={len(sub)} < {min_n}")
+        return None
+    rho, p = spearmanr(sub[col1], sub[col2])
+    fig = px.scatter(
+        sub, x=col1, y=col2,
+        title=f"{label1} vs {label2} (rho={rho:.4f}, p={p:.6f}, N={len(sub)})",
+        opacity=0.5,
+        trendline="lowess",
+        trendline_color_override="red"
+    )
+    fig.update_layout(height=500, width=600)
+    try:
+        fig.show()
+    except Exception:
+        pass
+    print(f"  {label1} x {label2}: rho={rho:.4f}, p={p:.6f}, N={len(sub)}")
+    return {
+        "FDR_Family": "Numeric correlations",
+        "Phase": "Phase 3",
+        "Comparison": "Numeric correlations",
+        "Test": "Spearman",
+        "Group": "global",
+        "N": len(sub),
+        "N_events": len(sub),
+        "Statistic": round(rho, 4),
+        "p_value": round(p, 6),
+        "Effect_Size": round(rho, 4),
+        "Significant": sig_star(p)
+    }
+
+for c1, c2, l1, l2 in [
+    ("AGE", "TUMOR_FRACTION", "AGE", "TF"),
+    ("AGE", "TUMOR_PLOIDY", "AGE", "TP"),
+    ("TUMOR_FRACTION", "TUMOR_PLOIDY", "TF", "TP"),
+]:
+    res = spearman_with_plot(df, c1, c2, l1, l2)
+    if res:
+        results_ph3.append(res)"""))
+
+# ── Cell 18: Phase 3 FDR + display ──
+cells.append(new_code_cell("""if len(results_ph3) > 0:
+    df_ph3 = pd.DataFrame(results_ph3)
+    df_ph3["FDR_WithinFamily"] = np.nan
+    families = df_ph3["FDR_Family"].unique()
+    for fam in families:
+        mask = df_ph3["FDR_Family"] == fam
+        pvals = df_ph3.loc[mask, "p_value"].values
+        if len(pvals) > 1:
+            reject, qvals, _, _ = smm.multipletests(pvals, method="fdr_bh")
+            df_ph3.loc[mask, "FDR_WithinFamily"] = qvals
+        elif len(pvals) == 1:
+            df_ph3.loc[mask, "FDR_WithinFamily"] = pvals[0]
+
+    print(f"\\nPhase 3: {len(df_ph3)} total tests")
+    print(f"Families: {df_ph3['FDR_Family'].value_counts().to_dict()}")
+    sig_raw = (df_ph3["p_value"] < 0.05).sum()
+    sig_fdr = (df_ph3["FDR_WithinFamily"] < 0.05).sum()
+    print(f"Significant (p<0.05): {sig_raw}")
+    print(f"FDR-significant (q<0.05): {sig_fdr}")
+
+    display_cols = ["Phase", "Comparison", "Test", "Group", "N", "N_events",
+                    "Statistic", "p_value", "FDR_WithinFamily", "Significant", "Effect_Size"]
+    avail = [c for c in display_cols if c in df_ph3.columns]
+    display(df_ph3[avail].style.format({
+        "p_value": "{:.6f}",
+        "FDR_WithinFamily": "{:.4f}",
+        "Effect_Size": "{:.4f}"
+    }))
+else:
+    print("No Phase 3 results.")
+    df_ph3 = pd.DataFrame()"""))
+
+# ── Cell 19: Combined results + save ──
+cells.append(new_code_cell("""# Combine Phase 2 and Phase 3
+if len(df_ph2) > 0 and len(df_ph3) > 0:
+    combined = pd.concat([df_ph2, df_ph3], ignore_index=True)
+elif len(df_ph2) > 0:
+    combined = df_ph2.copy()
+elif len(df_ph3) > 0:
+    combined = df_ph3.copy()
+else:
+    combined = pd.DataFrame()
+
+# Recompute FDR within each family across merged
+if len(combined) > 0 and "FDR_Family" in combined.columns:
+    combined["FDR_WithinFamily"] = np.nan
+    for fam in combined["FDR_Family"].unique():
+        mask = combined["FDR_Family"] == fam
+        pvals = combined.loc[mask, "p_value"].values
+        if len(pvals) > 1:
+            reject, qvals, _, _ = smm.multipletests(pvals, method="fdr_bh")
+            combined.loc[mask, "FDR_WithinFamily"] = qvals
+        elif len(pvals) == 1:
+            combined.loc[mask, "FDR_WithinFamily"] = pvals[0]
+
+# Standardise column order
+final_cols = [
+    "Phase", "Comparison", "Test", "Group", "N", "N_events",
+    "Statistic", "p_value", "FDR_WithinFamily", "Significant", "Effect_Size"
+]
+combined = combined[final_cols]
+
+out_dir = "/home/alon/menow_home_ass/notebooks/clinical_associations"
+os.makedirs(out_dir, exist_ok=True)
+
+# Save full results
+combined.to_csv(f"{out_dir}/clinical_associations_results.csv", index=False)
+
+# Save significant summary
+sig = combined[combined["p_value"] < 0.05].copy()
+sig.to_csv(f"{out_dir}/clinical_associations_summary.csv", index=False)
+
+print(f"\\n{'=' * 60}")
+print(f"Combined Results Summary")
+print(f"{'=' * 60}")
+print(f"Total tests: {len(combined)}")
+print(f"  Phase 2: {len(df_ph2)} rows")
+print(f"  Phase 3: {len(df_ph3)} rows")
+sig_raw = (combined["p_value"] < 0.05).sum()
+sig_fdr = (combined["FDR_WithinFamily"] < 0.05).sum()
+print(f"Significant (p<0.05): {sig_raw} ({sig_raw/len(combined)*100:.1f}%)")
+print(f"FDR-significant (q<0.05): {sig_fdr} ({sig_fdr/len(combined)*100:.1f}%)")
+
+display(combined.style.format({
+    "p_value": "{:.6f}",
+    "FDR_WithinFamily": "{:.4f}",
+    "Effect_Size": "{:.4f}"
+}))
+
+print(f"\\nSaved: {out_dir}/clinical_associations_results.csv")
+print(f"Saved: {out_dir}/clinical_associations_summary.csv")"""))
 
 # ── Cell 20: Summary markdown ──
 cells.append(new_markdown_cell(
-    '## Summary & Next Steps\n\n'
-    'This analysis has characterized the relationships between clinical variables '
+    '## Summary\n\n'
+    'This analysis characterized relationships between clinical variables '
     'in the PBTA_RNA cohort, independent of outcome.\n\n'
-    '**Phase 2** identified per-group enrichments of categorical clinical variables '
-    '(SEX, Predisposition, Subtype, Race) across cancer groups using binomial, '
-    'Fisher exact, and chi-squared tests.\n\n'
-    '**Phase 3** identified differences in numeric variables (AGE, TUMOR_FRACTION, '
-    'TUMOR_PLOIDY) across cancer groups using Kruskal-Wallis and per-group '
-    'Mann-Whitney tests, plus Spearman correlations between numeric pairs.\n\n'
+    '**Phase 2 (Cross-Categorical)** identified per-group enrichments of SEX, '
+    'cancer predisposition syndromes, molecular subtypes, sex-predisposition interactions, '
+    'and race across cancer groups.\n\n'
+    '**Phase 3 (Numeric Comparisons)** identified differences in AGE, TUMOR_FRACTION, '
+    'and TUMOR_PLOIDY distributions across cancer groups, as well as correlations '
+    'between these numeric variables.\n\n'
     '### Next Steps\n'
-    '- **Phase 4**: Multivariate models (Cox PH) incorporating all variables\n'
-    '- **Phase 5**: Unsupervised subgroup discovery\n'
-    '- **Phase 6**: Consolidated summary across all phases'
-))
-
-# ── Cell 21: Detailed findings ──
-cells.append(new_markdown_cell(
-    '### Detailed Findings\n\n'
-    '*(This section to be populated after reviewing the output CSV files.)*\n\n'
-    'Key observations:\n'
-    '- Significant Phase 2 results indicate cancer groups with unusual proportions '
-    'of Female patients, predisposition, subtypes, or race composition\n'
-    '- Significant Phase 3 KW results show which numeric variables differ globally '
-    'across cancer groups\n'
-    '- Per-group MW tests identify specific cancer groups driving the global differences\n'
-    '- Spearman correlations reveal monotonic relationships between AGE, TF, and TP\n\n'
-    'See `clinical_associations_results.csv` for the complete table of all tests '
-    'with p-values and effect sizes.'
+    '- Review significant findings in context of known biology\n'
+    '- Cross-reference with Phase 1 outcome associations\n'
+    '- Proceed to multivariate modeling (Phase 4)'
 ))
 
 nb.cells = cells
@@ -640,5 +818,5 @@ nb.cells = cells
 with open(NB_PATH, 'w') as f:
     nbformat.write(nb, f)
 
-print(f"\u2705 Notebook saved to {NB_PATH}")
+print(f"✅ Notebook saved to {NB_PATH}")
 print(f"   {len(cells)} cells created")

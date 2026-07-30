@@ -1,127 +1,160 @@
-# Phase 2 + 3: Clinical Associations — Cross-Categorical & Numeric Comparisons
+# Phase 2+3: Clinical Associations — Cross-Categorical & Numeric Comparisons
 
-**Also see:** `context/clinical_deep_dive_general.md` for shared methodology, imports, and conventions.
+**Prerequisite:** Read `/home/alon/menow_home_ass/context/clinical_deep_dive_general.md` for shared methodology (test selection, FDR, effect sizes, formatting, imports, helper functions).
 
-## Objective
+This notebook builds **Phase 2 (Cross-Categorical)** and **Phase 3 (Numeric Comparisons)** of the PBTA_RNA Clinical Deep Dive. Phase 2 tests per-group enrichment of categorical variables; Phase 3 compares numeric distributions across groups and computes correlations.
 
-Analyze associations between clinical variables **without outcome** (Phase 1 already handled outcome). This is a two-part analysis:
+---
 
-- **Phase 2 (Cross-Categorical):** Associations between pairs of categorical clinical variables (e.g., SEX × CANCER_GROUP).
-- **Phase 3 (Numeric Comparisons):** Distribution of numeric variables (AGE, TF, TP) across categorical groups + correlations between numeric variables.
+## Scope
 
-## Dataset & Preprocessing
+### Phase 2 — Cross-Categorical (per-group, n ≥ 20)
 
-Same merged patient+sample dataset as Phase 1. Files at `PBTA_RNA/data_clinical_patient_attributes.txt` and `data_clinical_sample_attributes.txt`.
+| # | Test | Method | Per-Group | FDR Family |
+|---|------|--------|-----------|------------|
+| 1 | SEX enrichment | Binomial vs 50:50 | Each group tested | "SEX enrichment" |
+| 2 | Predisposition enrichment | Fisher exact 2×2 (has_pred × in_group) | Each pred category × each group | "Predisposition enrichment" |
+| 3 | SUBTYPE distribution | Cross-tab heatmap only | Descriptive — no tests | — |
+| 4 | SEX × PRED 3-way | Fisher / Chi² 2×2 (Sex × PRED_BINARY) | Each group | "SEX × Predisposition" |
+| 5 | Race enrichment | Fisher exact 2×2 (has_race × in_group) | Each race category × each group | "Race enrichment" |
 
-### Cleaning
-- Reuse same cleaning functions from `notebooks/clinical_analysis/src/imports.py`:
-  - `read_patients()`, `read_samples()`
-  - `clean_os()`, `clean_efs()`, `clean_race_eth()`, `clean_pred()`, `clean_subtype()`, `clean_tf_tp()`
-- **No outcome filtering needed** — these analyses use all available samples (not restricted to OS/EFS available cases)
-- Drop rows with missing data per specific test (pairwise deletion)
+**Threshold:** Only cancer groups with n ≥ 20 samples (with non-missing data for the specific test) are included.
 
-## Phase 2: Cross-Categorical Associations
+### Phase 3 — Numeric Comparisons
 
-### Analyses
+| # | Test | Method | Per-Group | FDR Family |
+|---|------|--------|-----------|------------|
+| 6 | AGE × CANCER_GROUP | Global KW + per-group MW | Each group vs all others | "AGE × CG" |
+| 7 | TF × CANCER_GROUP | Global KW + per-group MW | Each group vs all others | "TF × CG" |
+| 8 | TP × CANCER_GROUP | Global KW + per-group MW | Each group vs all others | "TP × CG" |
+| 9 | AGE × TF | Spearman ρ + LOESS scatter | Global | "Numeric correlations" |
+| 10 | AGE × TP | Spearman ρ + LOESS scatter | Global | "Numeric correlations" |
+| 11 | TF × TP | Spearman ρ + LOESS scatter | Global | "Numeric correlations" |
 
-| # | Test | Predictor | Response | Min n per cell | Statistic | Effect Size |
-|---|------|-----------|----------|---------------|-----------|-------------|
-| 1 | SEX × CANCER_GROUP | SEX | CANCER_GROUP | 5 | χ² | Cramer's V |
-| 2 | CANCER_PREDISPOSITIONS × CANCER_GROUP | PRED | CANCER_GROUP | 5 | χ² | Cramer's V |
-| 3 | MOLECULAR_SUBTYPE × CANCER_GROUP | SUBTYPE | CANCER_GROUP | 5 | χ² | Cramer's V |
-| 4 | SEX × CANCER_PREDISPOSITIONS | SEX | PRED | 5 | χ² | Cramer's V |
-| 5 | RACE × CANCER_GROUP | RACE | CANCER_GROUP | 5 | χ² | Cramer's V |
+---
 
-### For each test:
-1. Build cross-tabulation table
-2. Run chi-squared test (or Fisher exact if any cell < 5)
-3. Compute Cramer's V as effect size
-4. Generate heatmap visualization (annotated with counts or percentages)
-5. Add results to summary table
+## Notebook Structure
 
-### Edge Cases
-- If a category appears in <1% of rows, collapse into "Other"
-- If more than 50% of expected cells are < 5, fall back to Fisher exact test
-- Report the number of excluded "Other" samples
+### Cell 0 (markdown): Title
+### Cell 1 (markdown): Summary — two paragraphs describing Phase 2 and Phase 3
+### Cell 2 (code): Imports
+### Cell 3 (code): Data loading — read, merge, clean, print sample sizes
+### Cell 4 (markdown): `## Phase 2: Cross-Categorical Associations`
+### Cell 5 (code): Phase 2 helpers — `sig_star`, `run_enrichment`
+### Cell 6 (code): Test 1 — SEX enrichment per group (binomial vs 50:50)
+### Cell 7 (code): Test 2 — Predisposition enrichment per group (Fisher exact)
+### Cell 8 (code): Test 3 — SUBTYPE descriptive heatmap (no p-values)
+### Cell 9 (code): Test 4 — SEX × PRED 3-way per group
+### Cell 10 (code): Test 5 — Race enrichment per group (Fisher exact)
+### Cell 11 (code): Phase 2 results — FDR per Comparison, display
+### Cell 12 (markdown): `## Phase 3: Numeric Comparisons`
+### Cell 13 (code): Phase 3 helpers — `kw_per_group`
+### Cell 14 (code): Test 6 — AGE × CANCER_GROUP
+### Cell 15 (code): Test 7 — TF × CANCER_GROUP
+### Cell 16 (code): Test 8 — TP × CANCER_GROUP
+### Cell 17 (code): Tests 9-11 — Spearman correlations
+### Cell 18 (code): Phase 3 results — FDR per Comparison, display
+### Cell 19 (code): Combined results + save CSV
+### Cell 20 (markdown): Summary markdown
 
-## Phase 3: Numeric Comparisons
+---
 
-### Analyses
+## Test Details
 
-#### Part A: Numeric × Categorical (Kruskal-Wallis + Dunn's post-hoc)
+### Test 1 — SEX enrichment per group (binomial vs 50:50)
 
-| # | Test | Numeric Var | Groups | Min per group | Statistic | Effect Size |
-|---|------|-------------|--------|---------------|-----------|-------------|
-| 6 | AGE distribution by CANCER_GROUP | AGE | CANCER_GROUP | 20 | KW | ε² |
-| 7 | TUMOR_FRACTION by CANCER_GROUP | TF | CANCER_GROUP | 20 | KW | ε² |
-| 8 | TUMOR_PLOIDY by CANCER_GROUP | TP | CANCER_GROUP | 20 | KW | ε² |
+For each cancer group (n ≥ 20):
+- Count Male and Female
+- Binomial test against null proportion p = 0.5 (two-sided)
+- Report: Group, N, N_Male, N_Female, %Male, %Female, p_value, enriched sex
+- FDR family: "SEX enrichment"
+- Plot: Horizontal bar chart — %Male and %Female per group, color-coded by significance
 
-For each:
-1. Boxplot (grouped by CANCER_GROUP, ordered by median)
-2. Kruskal-Wallis test
-3. If KW significant (p < 0.05), run Dunn's post-hoc with Bonferroni correction
-4. Compute ε² effect size (KW equivalent of η²)
-5. Add to summary table
+### Test 2 — Predisposition enrichment per group (Fisher exact)
 
-#### Part B: Numeric × Numeric (Spearman Correlation)
+For each unique value in `CANCER_PREDISPOSITIONS` (after cleaning):
+- For each cancer group (n ≥ 20):
+  - Build 2×2: `has_this_pred` (yes/no) × `in_this_group` (yes/no)
+  - Fisher exact test
+- Report: Predisposition, Group, N_group, N_with_pred_in_group, N_with_pred_total, odds_ratio, p_value
+- FDR family: "Predisposition enrichment"
+- Plot: Heatmap (predisposition × cancer group) with count annotations
 
-| # | Test | Variable 1 | Variable 2 | Min n | Statistic | Effect Size |
-|---|------|------------|------------|-------|-----------|-------------|
-| 9 | AGE × TF correlation | AGE | TUMOR_FRACTION | 20 | Spearman ρ | ρ |
-| 10 | AGE × TP correlation | AGE | TUMOR_PLOIDY | 20 | Spearman ρ | ρ |
-| 11 | TF × TP correlation | TF | TUMOR_PLOIDY | 20 | Spearman ρ | ρ |
+### Test 3 — SUBTYPE descriptive only
 
-For each:
-1. Scatter plot with LOESS smoother
-2. Spearman rank correlation
-3. Add to summary table
+- Cross-tabulation: MOLECULAR_SUBTYPE × CANCER_GROUP
+- Heatmap with count annotations (text_auto=True)
+- Top 30 subtypes for readability
+- No p-values, no statistical tests
 
-## Results Saved
+### Test 4 — SEX × PRED 3-way per group
 
-- `notebooks/clinical_associations/clinical_associations_results.csv` — full results table
-- `notebooks/clinical_associations/clinical_associations_summary.csv` — subset of significant findings
+- Create `PRED_BINARY`: "Any predisposition" / "No predisposition"
+- For each cancer group (n ≥ 20):
+  - 2×2 contingency: SEX (M/F) × PRED_BINARY
+  - Fisher exact if any expected cell < 5, else Chi² with Yates correction
+- Report: Group, N, p_value, odds ratio (or Cramer's V for Chi²)
+- FDR family: "SEX × Predisposition"
+- Plot: Side-by-side %Female bars for predisposed vs non-predisposed per group
 
-## Cell Outline
+### Test 5 — Race enrichment per group (Fisher exact)
 
-### Section 0: Setup
-1. **Imports** — load standard + custom helpers
-2. **Data loading** — read + merge + clean
-3. **Section header**
+For each unique value in `RACE` (after cleaning, excluding Unknown):
+- For each cancer group (n ≥ 20):
+  - Build 2×2: `has_this_race` (yes/no) × `in_this_group` (yes/no)
+  - Fisher exact test
+- Report: Race, Group, N, N_with_race, p_value, odds_ratio
+- FDR family: "Race enrichment"
+- Plot: Heatmap (race × cancer group) with count annotations
 
-### Section 1: Phase 2 — Cross-Categorical
-4. **Phase 2 header** (markdown)
-5. **Test 1:** SEX × CANCER_GROUP
-6. **Test 2:** PRED × CANCER_GROUP
-7. **Test 3:** SUBTYPE × CANCER_GROUP
-8. **Test 4:** SEX × PREDISPOSITION
-9. **Test 5:** RACE × CANCER_GROUP
-10. **Phase 2 results table**
+### Tests 6-8 — Numeric × CANCER_GROUP (KW + MW)
 
-### Section 2: Phase 3 — Numeric Comparisons
-11. **Phase 3 header** (markdown)
-12. **Test 6:** AGE × CANCER_GROUP boxplot + KW
-13. **Test 7:** TF × CANCER_GROUP boxplot + KW
-14. **Test 8:** TP × CANCER_GROUP boxplot + KW
-15. **Test 9:** AGE × TF scatter + Spearman
-16. **Test 10:** AGE × TP scatter + Spearman
-17. **Test 11:** TF × TP scatter + Spearman
-18. **Phase 3 results table**
+- Global Kruskal-Wallis test across all groups
+- Per-group Mann-Whitney (each group vs all others)
+- Effect size: ε² (KW) and rank-biserial r (MW)
+- Boxplot ordered by median
+- FDR family per variable: "AGE × CG", "TF × CG", "TP × CG"
 
-### Section 3: Combined
-19. **Combined results table** (Phase 2 + Phase 3)
-20. **Save results CSV**
+### Tests 9-11 — Numeric × Numeric (Spearman)
 
-## Outputs & File Locations
+- Spearman rank correlation (ρ)
+- Scatter plot with LOESS trendline (`trendline='lowess'`)
+- FDR family: "Numeric correlations"
+
+---
+
+## CSV Output Format
+
+```
+Phase,Comparison,Test,Group,N,N_events,Statistic,p_value,FDR_WithinFamily,Significant,Effect_Size
+```
+
+- `FDR_WithinFamily`: Benjamini-Hochberg FDR applied within each Comparison family
+- `Significant`: `*` p<0.05, `**` p<0.01, `***` p<0.001, `ns` not significant
+- Saved to: `notebooks/clinical_associations/clinical_associations_results.csv`
+
+---
+
+## FDR Strategy
+
+FDR is applied **within each Comparison family** (i.e., within each row of the Scope table above). For example, all "SEX enrichment" tests share one FDR correction; all "Predisposition enrichment" tests share another. This controls the FDR per conceptual hypothesis family.
+
+---
+
+## Visualization Rules
+
+- All plots use Plotly (plotly.express and plotly.graph_objects)
+- All `fig.show()` calls wrapped in `try/except` blocks
+- Heatmaps use `text_auto=True` to show actual counts in cells
+- No `.background_gradient()` or `.to_html()` on pandas StyleFrames
+
+---
+
+## Output Files
 
 | File | Path |
 |------|------|
-| Source notebook (no outputs) | `notebooks/clinical_associations/clinical_associations_analysis.ipynb` |
-| Executed notebook (has outputs) | `clinical_associations_analysis_executed.ipynb` (root) |
+| Source notebook | `notebooks/clinical_associations/clinical_associations_analysis.ipynb` |
+| Executed notebook | `clinical_associations_analysis_executed.ipynb` (root) |
 | Results CSV | `notebooks/clinical_associations/clinical_associations_results.csv` |
-| Summary CSV | `notebooks/clinical_associations/clinical_associations_summary.csv` |
 | Build script | `notebooks/clinical_associations/src/build_nb.py` |
-| Support .py files | `notebooks/clinical_associations/src/` |
-
-## FDR Note
-
-Phase 2+3 tests involve the same variables as Phase 1 (SEX, AGE, TF, TP, PREDISPOSITION). Currently, FDR is applied within each phase independently. After all phases are complete, a unified cross-phase FDR per variable family should be applied as a sensitivity analysis. See plan document for details.

@@ -8,15 +8,34 @@ This document is the **high-level overview** of the PBTA_RNA clinical deep-dive 
 
 ```
 context/
-├── clinical_deep_dive_general.md     ← Shared methodology, conventions, imports, helper functions, phases overview
+├── clinical_deep_dive_general.md     ← Shared methodology, conventions, imports, helpers
 └── clinical_deep_dive_plan.md         ← THIS FILE — high-level reference
 
 notebooks/
-├── survival_analysis.md              ← Phase 1: Outcome Analysis (OS & EFS comparisons)
-├── clinical_associations_analysis.md ← Phase 2+3: Cross-Categorical + Numeric Associations
-├── phase4_deep_dive.md               ← (future) Phase 4: Multivariate Models
-├── phase5_deep_dive.md               ← (future) Phase 5: Unsupervised Subgroup Discovery
-└── phase6_deep_dive.md               ← (future) Phase 6: Summary & Consolidation
+├── survival_analysis_executed.ipynb  ← Phase 1: executed notebook (has outputs)
+├── age_deciles_analysis_executed.ipynb ← Age decile analysis (has outputs)
+├── clinical_associations_analysis_executed.ipynb ← Phase 2+3: executed (has outputs)
+├── clinical_analysis_excuted.ipynb   ← Basic exploratory notebook
+├── survival_analysis/
+│   ├── survival_analysis.ipynb       ← Source (no outputs)
+│   ├── survival_analysis.md          ← Instruction file
+│   ├── survival_analysis_results.csv
+│   └── fdr_significant_summary.csv
+├── age_deciles/
+│   ├── age_deciles_analysis.ipynb    ← Source (no outputs)
+│   ├── age_deciles_results.csv
+│   └── src/
+│       └── build_nb.py
+├── clinical_associations/
+│   ├── clinical_associations_analysis.ipynb  ← Source (no outputs)
+│   ├── clinical_associations_analysis.md     ← Instruction file
+│   ├── clinical_associations_results.csv
+│   ├── clinical_associations_summary.csv
+│   └── src/
+│       └── build_nb.py
+└── clinical_analysis/
+    └── src/
+        └── imports.py                 ← Shared helper functions
 ```
 
 ---
@@ -84,8 +103,8 @@ Reported alongside every p-value (Cliff's d, ε², Cramer's V, HR). See general 
 | File | Location | Purpose |
 |------|----------|---------|
 | General Methodology | `context/clinical_deep_dive_general.md` | Shared stats, formatting, imports, helpers |
-| Phase 1 (Survival Analysis) | `notebooks/survival_analysis.md` | Outcome Analysis details |
-| Phase 2+3 (Associations) | `notebooks/clinical_associations_analysis.md` | Cross-Categorical + Numeric Comparisons |
+| Phase 1 (Survival Analysis) | `notebooks/survival_analysis/survival_analysis.md` | Outcome Analysis details |
+| Phase 2+3 (Associations) | `notebooks/clinical_associations/clinical_associations_analysis.md` | Cross-Categorical + Numeric Comparisons |
 | Basic Notebook | `notebooks/clinical_analysis.ipynb` | Exploratory baseline |
 | Assignment | `context/assignment.md` | Original task description |
 | Reference Paper | `context/referencess.md` | TCGA glioma statistical methods |

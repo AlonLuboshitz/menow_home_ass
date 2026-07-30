@@ -1,12 +1,200 @@
-Test,Var1,Var2,N,Statistic,Statistic_Val,P_value,Effect_Size,Min_Expected,Table_Shape,Phase,Num_Var,Cat_Var,Effect_Type,N_Groups,FDR_q
-SEX × CANCER_GROUP,SEX,CANCER_GROUP,4056,χ² (Fisher not available for >2×2),157.1438,0.001426,0.1392,0.0,3×55,Phase 2,,,,,0.0017824999999999998
-PRED × CANCER_GROUP,PRED,CANCER_GROUP,4074,χ² (Fisher not available for >2×2),7749.2512,0.0,0.2815,0.0,25×55,Phase 2,,,,,0.0
-SUBTYPE × CANCER_GROUP,SUBTYPE,CANCER_GROUP,4074,χ² (Fisher not available for >2×2),98748.1241,0.0,0.67,0.0,133×55,Phase 2,,,,,0.0
-SEX × PRED,SEX,PRED,4293,χ² (Fisher not available for >2×2),61.8576,0.121266,0.0849,0.0,3×26,Phase 2,,,,,0.121266
-RACE × CANCER_GROUP,RACE,CANCER_GROUP,4074,χ² (Fisher not available for >2×2),660.149,0.0,0.1521,0.0,8×55,Phase 2,,,,,0.0
-Kruskal-Wallis,,,4231,820.3866,,0.0,0.1986,,,Phase 3,AGE,CANCER_GROUP,ε²,27.0,0.0
-Kruskal-Wallis,,,2877,110.0441,,0.0,0.0336,,,Phase 3,TUMOR_FRACTION,CANCER_GROUP,ε²,22.0,0.0
-Kruskal-Wallis,,,2938,56.8332,,3.8e-05,0.0132,,,Phase 3,TUMOR_PLOIDY,CANCER_GROUP,ε²,22.0,4.5600000000000004e-05
-Spearman,,,2826,-0.0879,,3e-06,-0.0879,,,Phase 3,AGE,TF,ρ,2.0,6e-06
-Spearman,,,2887,0.039,,0.035924,0.039,,,Phase 3,AGE,TP,ρ,2.0,0.035924
-Spearman,,,2876,-0.0843,,6e-06,-0.0843,,,Phase 3,TF,TP,ρ,2.0,9e-06
+Phase,Comparison,Test,Group,N,N_events,Statistic,p_value,FDR_WithinPhase,Significant,Effect_Size
+Phase 2,SEX enrichment,Binomial,Adamantinomatous Craniopharyngioma,115,40,34.8%F,0.014928,0.03874927659574468,*,-11.37
+Phase 2,SEX enrichment,Binomial,Atypical Teratoid Rhabdoid Tumor,152,87,57.2%F,0.007093,0.01952542222222222,**,11.08
+Phase 2,SEX enrichment,Binomial,CNS Embryonal tumor,29,18,62.1%F,0.0953,0.19377666666666665,ns,15.92
+Phase 2,SEX enrichment,Binomial,Chordoma,29,21,72.4%F,0.004931,0.013990279069767441,**,26.26
+Phase 2,SEX enrichment,Binomial,Choroid plexus tumor,100,40,40.0%F,0.229843,0.3633901265822784,ns,-6.15
+Phase 2,SEX enrichment,Binomial,Craniopharyngioma,26,8,30.8%F,0.167322,0.29369582857142856,ns,-15.38
+Phase 2,SEX enrichment,Binomial,Diffuse hemispheric glioma,46,18,39.1%F,0.376967,0.5286203908045977,ns,-7.02
+Phase 2,SEX enrichment,Binomial,Diffuse midline glioma,408,225,55.1%F,0.000283,0.0009331351351351352,***,9.0
+Phase 2,SEX enrichment,Binomial,Dysembryoplastic neuroepithelial tumor,73,32,43.8%F,0.725838,0.8353984528301887,ns,-2.32
+Phase 2,SEX enrichment,Binomial,Embryonal tumor with multilayer rosettes,23,13,56.5%F,0.403713,0.5536156666666666,ns,10.37
+Phase 2,SEX enrichment,Binomial,Ependymoma,338,141,41.7%F,0.113494,0.21634793749999998,ns,-4.44
+Phase 2,SEX enrichment,Binomial,Ewing sarcoma,46,12,26.1%F,0.007202,0.01952542222222222,**,-20.07
+Phase 2,SEX enrichment,Binomial,Ganglioglioma,151,58,38.4%F,0.060432,0.1293456842105263,ns,-7.74
+Phase 2,SEX enrichment,Binomial,Glial-neuronal tumor NOS,69,29,42.0%F,0.546752,0.6763187070707071,ns,-4.12
+Phase 2,SEX enrichment,Binomial,Hemangioblastoma,20,6,30.0%F,0.180568,0.3059624444444445,ns,-16.15
+Phase 2,SEX enrichment,Binomial,High-grade glioma,508,242,47.6%F,0.504789,0.6551516808510639,ns,1.49
+Phase 2,SEX enrichment,Binomial,Low-grade glioma,861,388,45.1%F,0.53843,0.6763187070707071,ns,-1.09
+Phase 2,SEX enrichment,Binomial,Medulloblastoma,440,179,40.7%F,0.021716,0.051948078431372544,*,-5.47
+Phase 2,SEX enrichment,Binomial,Meningioma,100,56,56.0%F,0.05627,0.12258821428571429,ns,9.85
+Phase 2,SEX enrichment,Binomial,Neuroblastoma,22,14,63.6%F,0.133313,0.24274904477611936,ns,17.48
+Phase 2,SEX enrichment,Binomial,Neurofibroma/Plexiform,48,21,43.8%F,0.773879,0.8714213761467889,ns,-2.4
+Phase 2,SEX enrichment,Binomial,Oligodendroglioma,70,37,52.9%F,0.281631,0.41901197560975617,ns,6.71
+Phase 2,SEX enrichment,Binomial,Pilocytic astrocytoma,24,12,50.0%F,0.838352,0.9051233982300885,ns,3.85
+Phase 2,SEX enrichment,Binomial,Pineoblastoma,32,15,46.9%F,1.0,1.0,ns,0.72
+Phase 2,SEX enrichment,Binomial,Sarcoma,49,24,49.0%F,0.774843,0.8714213761467889,ns,2.83
+Phase 2,SEX enrichment,Binomial,Schwannoma,68,32,47.1%F,0.903644,0.9586484173913044,ns,0.91
+Phase 2,SEX enrichment,Binomial,nan,237,120,50.6%F,0.171615,0.2948877464788732,ns,4.48
+Phase 2,Predisposition prevalence,Binomial,Adamantinomatous Craniopharyngioma,115,1,0.9%Pred,0.000304,0.000976,***,-8.45
+Phase 2,Predisposition prevalence,Binomial,Atypical Teratoid Rhabdoid Tumor,152,29,19.1%Pred,0.000208,0.0007048888888888889,***,9.76
+Phase 2,Predisposition prevalence,Binomial,CNS Embryonal tumor,29,2,6.9%Pred,1.0,1.0,ns,-2.43
+Phase 2,Predisposition prevalence,Binomial,Chordoma,29,0,0.0%Pred,0.106554,0.20967077419354838,ns,-9.32
+Phase 2,Predisposition prevalence,Binomial,Choroid plexus tumor,100,19,19.0%Pred,0.002739,0.007956142857142858,**,9.68
+Phase 2,Predisposition prevalence,Binomial,Craniopharyngioma,26,0,0.0%Pred,0.167379,0.29369582857142856,ns,-9.32
+Phase 2,Predisposition prevalence,Binomial,Diffuse hemispheric glioma,47,0,0.0%Pred,0.020305,0.0495442,*,-9.32
+Phase 2,Predisposition prevalence,Binomial,Diffuse midline glioma,421,8,1.9%Pred,0.0,0.0,***,-7.42
+Phase 2,Predisposition prevalence,Binomial,Dysembryoplastic neuroepithelial tumor,73,8,11.0%Pred,0.548816,0.6763187070707071,ns,1.64
+Phase 2,Predisposition prevalence,Binomial,Embryonal tumor with multilayer rosettes,23,0,0.0%Pred,0.266671,0.40165261728395063,ns,-9.32
+Phase 2,Predisposition prevalence,Binomial,Ependymoma,341,5,1.5%Pred,0.0,0.0,***,-7.86
+Phase 2,Predisposition prevalence,Binomial,Ewing sarcoma,46,0,0.0%Pred,0.019876,0.0495442,*,-9.32
+Phase 2,Predisposition prevalence,Binomial,Ganglioglioma,151,2,1.3%Pred,0.00011,0.00038342857142857146,***,-8.0
+Phase 2,Predisposition prevalence,Binomial,Glial-neuronal tumor NOS,69,1,1.4%Pred,0.020097,0.0495442,*,-7.87
+Phase 2,Predisposition prevalence,Binomial,Hemangioblastoma,20,13,65.0%Pred,0.0,0.0,***,55.68
+Phase 2,Predisposition prevalence,Binomial,High-grade glioma,512,80,15.6%Pred,6e-06,2.218181818181818e-05,***,6.3
+Phase 2,Predisposition prevalence,Binomial,Low-grade glioma,862,72,8.4%Pred,0.348863,0.5066819761904762,ns,-0.97
+Phase 2,Predisposition prevalence,Binomial,Medulloblastoma,440,10,2.3%Pred,0.0,0.0,***,-7.05
+Phase 2,Predisposition prevalence,Binomial,Meningioma,100,16,16.0%Pred,0.036181,0.08174225925925925,*,6.68
+Phase 2,Predisposition prevalence,Binomial,Neuroblastoma,22,1,4.5%Pred,0.716426,0.8353984528301887,ns,-4.78
+Phase 2,Predisposition prevalence,Binomial,Neurofibroma/Plexiform,48,43,89.6%Pred,0.0,0.0,***,80.26
+Phase 2,Predisposition prevalence,Binomial,Oligodendroglioma,70,0,0.0%Pred,0.001658,0.0050569000000000005,**,-9.32
+Phase 2,Predisposition prevalence,Binomial,Pilocytic astrocytoma,24,1,4.2%Pred,0.721414,0.8353984528301887,ns,-5.16
+Phase 2,Predisposition prevalence,Binomial,Pineoblastoma,32,1,3.1%Pred,0.36053,0.5158557209302326,ns,-6.2
+Phase 2,Predisposition prevalence,Binomial,Sarcoma,49,3,6.1%Pred,0.623137,0.7453207254901961,ns,-3.2
+Phase 2,Predisposition prevalence,Binomial,Schwannoma,68,22,32.4%Pred,0.0,0.0,***,23.03
+Phase 2,Predisposition prevalence,Binomial,nan,238,34,14.3%Pred,0.013504,0.03581495652173913,*,4.96
+Phase 2,Subtype enrichment: Unclassified,Binomial,Choroid plexus tumor,100,100,100.0%,0.0,0.0,***,79.55
+Phase 2,Subtype enrichment: Unclassified,Binomial,Dysembryoplastic neuroepithelial tumor,73,73,100.0%,0.0,0.0,***,79.55
+Phase 2,Subtype enrichment: Unclassified,Binomial,Hemangioblastoma,20,20,100.0%,0.0,0.0,***,79.55
+Phase 2,Subtype enrichment: Unclassified,Binomial,Meningioma,100,100,100.0%,0.0,0.0,***,79.55
+Phase 2,Subtype enrichment: Unclassified,Binomial,Neurofibroma/Plexiform,48,48,100.0%,0.0,0.0,***,79.55
+Phase 2,Subtype enrichment: Unclassified,Binomial,Oligodendroglioma,70,70,100.0%,0.0,0.0,***,79.55
+Phase 2,Subtype enrichment: Unclassified,Binomial,Sarcoma,49,49,100.0%,0.0,0.0,***,79.55
+Phase 2,Subtype enrichment: Unclassified,Binomial,Schwannoma,68,68,100.0%,0.0,0.0,***,79.55
+Phase 2,Subtype enrichment: Unclassified,Binomial,nan,238,238,100.0%,0.0,0.0,***,79.55
+Phase 2,"Subtype enrichment: HGG, H3 wildtype",Binomial,High-grade glioma,512,348,68.0%,0.0,0.0,***,59.9
+Phase 2,"Subtype enrichment: LGG, KIAA1549-BRAF",Binomial,Low-grade glioma,862,337,39.1%,0.0,0.0,***,31.28
+Phase 2,"Subtype enrichment: DMG, H3 K28, TP53",Binomial,Diffuse midline glioma,421,246,58.4%,0.0,0.0,***,52.73
+Phase 2,"Subtype enrichment: DMG, H3 K28",Binomial,Diffuse midline glioma,421,175,41.6%,0.0,0.0,***,37.51
+Phase 2,"Subtype enrichment: MB, Group4",Binomial,Medulloblastoma,440,151,34.3%,0.0,0.0,***,30.82
+Phase 2,"Subtype enrichment: LGG, wildtype",Binomial,Low-grade glioma,862,146,16.9%,0.0,0.0,***,13.55
+Phase 2,"Subtype enrichment: EPN, To be classified",Binomial,Ependymoma,341,140,41.1%,0.0,0.0,***,37.81
+Phase 2,"Subtype enrichment: HGG, H3 wildtype, TP53",Binomial,High-grade glioma,512,115,22.5%,0.0,0.0,***,19.79
+Phase 2,"Subtype enrichment: CRANIO, ADAM",Binomial,Adamantinomatous Craniopharyngioma,115,115,100.0%,0.0,0.0,***,97.33
+Phase 2,"Subtype enrichment: MB, SHH",Binomial,Medulloblastoma,440,114,25.9%,0.0,0.0,***,23.27
+Phase 2,"Subtype enrichment: EPN, PF A",Binomial,Ependymoma,341,99,29.0%,0.0,0.0,***,26.74
+Phase 2,"Subtype enrichment: MB, Group3",Binomial,Medulloblastoma,440,97,22.0%,0.0,0.0,***,19.8
+Phase 2,"Subtype enrichment: ATRT, To be classified",Binomial,Atypical Teratoid Rhabdoid Tumor,152,83,54.6%,0.0,0.0,***,52.68
+Phase 2,"Subtype enrichment: LGG, To be classified",Binomial,Low-grade glioma,862,54,6.3%,0.0,0.0,***,4.39
+Phase 2,"Subtype enrichment: LGG, To be classified",Binomial,Pilocytic astrocytoma,24,24,100.0%,0.0,0.0,***,98.12
+Phase 2,"Subtype enrichment: LGG, BRAF V600E",Binomial,Low-grade glioma,862,66,7.7%,0.0,0.0,***,6.13
+Phase 2,"Subtype enrichment: EPN, ST ZFTA",Binomial,Ependymoma,341,61,17.9%,0.0,0.0,***,16.47
+Phase 2,SEX × Predisposition,Fisher,Adamantinomatous Craniopharyngioma,115,115,Fisher,1.0,1.0,ns,-0.3509
+Phase 2,SEX × Predisposition,Chi2,Atypical Teratoid Rhabdoid Tumor,152,152,Chi2,0.967156,1.0,ns,-0.0255
+Phase 2,SEX × Predisposition,Fisher,CNS Embryonal tumor,29,29,Fisher,0.512315,0.6579203157894736,ns,0.4074
+Phase 2,SEX × Predisposition,Chi2,Choroid plexus tumor,100,100,Chi2,0.567079,0.69183638,ns,-0.104
+Phase 2,SEX × Predisposition,Fisher,Diffuse midline glioma,408,408,Fisher,0.024956,0.05855061538461539,*,-0.435
+Phase 2,SEX × Predisposition,Fisher,Dysembryoplastic neuroepithelial tumor,73,73,Fisher,1.0,1.0,ns,-0.0712
+Phase 2,SEX × Predisposition,Fisher,Ependymoma,338,338,Fisher,0.405518,0.5536156666666666,ns,-0.2204
+Phase 2,SEX × Predisposition,Fisher,Ganglioglioma,151,151,Fisher,0.523709,0.6655468541666667,ns,-0.3893
+Phase 2,SEX × Predisposition,Fisher,Glial-neuronal tumor NOS,69,69,Fisher,0.42029,0.5634657142857142,ns,0.5882
+Phase 2,SEX × Predisposition,Fisher,Hemangioblastoma,20,20,Fisher,0.12193,0.22538575757575754,ns,-0.4176
+Phase 2,SEX × Predisposition,Chi2,High-grade glioma,508,508,Chi2,0.408405,0.5536156666666666,ns,0.0577
+Phase 2,SEX × Predisposition,Chi2,Low-grade glioma,861,861,Chi2,0.328886,0.4834227951807229,ns,-0.0674
+Phase 2,SEX × Predisposition,Chi2,Medulloblastoma,440,440,Chi2,0.778565,0.8714213761467889,ns,0.0953
+Phase 2,SEX × Predisposition,Chi2,Meningioma,100,100,Chi2,0.80044,0.8858616071428571,ns,-0.0714
+Phase 2,SEX × Predisposition,Fisher,Neuroblastoma,22,22,Fisher,0.363636,0.5158557209302326,ns,-0.6667
+Phase 2,SEX × Predisposition,Fisher,Neurofibroma/Plexiform,48,48,Fisher,1.0,1.0,ns,0.0419
+Phase 2,SEX × Predisposition,Fisher,Pilocytic astrocytoma,24,24,Fisher,1.0,1.0,ns,-0.5217
+Phase 2,SEX × Predisposition,Fisher,Pineoblastoma,32,32,Fisher,0.46875,0.6149193548387097,ns,0.5484
+Phase 2,SEX × Predisposition,Fisher,Sarcoma,49,49,Fisher,0.109857,0.21273895238095236,ns,0.5435
+Phase 2,SEX × Predisposition,Chi2,Schwannoma,68,68,Chi2,0.264833,0.40165261728395063,ns,0.1779
+Phase 2,SEX × Predisposition,Chi2,nan,237,237,Chi2,0.168514,0.29369582857142856,ns,-0.1447
+Phase 2,Race distribution (White proportion),Binomial,Adamantinomatous Craniopharyngioma,80,63,78.8%W,0.229317,0.3633901265822784,ns,-4.84
+Phase 2,Race distribution (White proportion),Binomial,Atypical Teratoid Rhabdoid Tumor,110,78,70.9%W,0.001088,0.003403487179487179,**,-12.68
+Phase 2,Race distribution (White proportion),Binomial,CNS Embryonal tumor,20,19,95.0%W,0.232618,0.3633901265822784,ns,11.41
+Phase 2,Race distribution (White proportion),Binomial,Choroid plexus tumor,76,70,92.1%W,0.043773,0.09709647272727273,*,8.51
+Phase 2,Race distribution (White proportion),Binomial,Diffuse hemispheric glioma,32,28,87.5%W,0.810444,0.8858616071428571,ns,3.91
+Phase 2,Race distribution (White proportion),Binomial,Diffuse midline glioma,242,193,79.8%W,0.117585,0.22069799999999998,ns,-3.84
+Phase 2,Race distribution (White proportion),Binomial,Dysembryoplastic neuroepithelial tumor,54,46,85.2%W,0.855903,0.9159663684210526,ns,1.59
+Phase 2,Race distribution (White proportion),Binomial,Ependymoma,265,217,81.9%W,0.455226,0.6036692608695653,ns,-1.71
+Phase 2,Race distribution (White proportion),Binomial,Ewing sarcoma,39,39,100.0%W,0.001721,0.005121024390243903,**,16.41
+Phase 2,Race distribution (White proportion),Binomial,Ganglioglioma,131,112,85.5%W,0.637441,0.7550272038834951,ns,1.9
+Phase 2,Race distribution (White proportion),Binomial,Glial-neuronal tumor NOS,56,49,87.5%W,0.587198,0.7092886732673267,ns,3.91
+Phase 2,Race distribution (White proportion),Binomial,High-grade glioma,350,280,80.0%W,0.071324,0.1474835254237288,ns,-3.59
+Phase 2,Race distribution (White proportion),Binomial,Low-grade glioma,679,584,86.0%W,0.097077,0.194154,ns,2.42
+Phase 2,Race distribution (White proportion),Binomial,Medulloblastoma,307,269,87.6%W,0.063881,0.13437037931034482,ns,4.03
+Phase 2,Race distribution (White proportion),Binomial,Meningioma,74,48,64.9%W,9.9e-05,0.0003552352941176471,***,-18.73
+Phase 2,Race distribution (White proportion),Binomial,Neurofibroma/Plexiform,40,28,70.0%W,0.030179,0.06946864150943396,*,-13.59
+Phase 2,Race distribution (White proportion),Binomial,Oligodendroglioma,61,55,90.2%W,0.224118,0.3633901265822784,ns,6.57
+Phase 2,Race distribution (White proportion),Binomial,Pilocytic astrocytoma,21,20,95.2%W,0.23531,0.3633901265822784,ns,11.65
+Phase 2,Race distribution (White proportion),Binomial,Sarcoma,33,27,81.8%W,0.81325,0.8858616071428571,ns,-1.77
+Phase 2,Race distribution (White proportion),Binomial,Schwannoma,59,53,89.8%W,0.22244,0.3633901265822784,ns,6.24
+Phase 2,Race distribution (White proportion),Binomial,nan,182,159,87.4%W,0.192989,0.3225295616438356,ns,3.77
+Phase 3,AGE × CANCER_GROUP,Kruskal-Wallis,global,4231,4231,820.3866,0.0,0.0,***,0.1986
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Low-grade glioma,4231,861,1417999.5,0.304742,0.45125257692307696,ns,0.0226
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,High-grade glioma,4231,475,1111654.0,0.0,0.0,***,-0.2462
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Medulloblastoma,4231,436,783562.0,0.069748,0.13099014634146344,ns,0.0529
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Diffuse midline glioma,4231,410,790390.0,0.762787,0.8603500144927536,ns,-0.009
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Ependymoma,4231,340,513419.0,0.0,0.0,***,0.2238
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,nan,4231,227,476105.0,0.225909,0.3623956875,ns,-0.0476
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Atypical Teratoid Rhabdoid Tumor,4231,152,94852.0,0.0,0.0,***,0.694
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Ganglioglioma,4231,151,323368.0,0.297736,0.4495229803921569,ns,-0.0498
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Adamantinomatous Craniopharyngioma,4231,115,231158.0,0.669251,0.7807928333333334,ns,0.0233
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Meningioma,4231,100,274542.5,0.0,0.0,***,-0.3292
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Choroid plexus tumor,4231,99,107116.5,0.0,0.0,***,0.4763
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Dysembryoplastic neuroepithelial tumor,4231,73,184756.5,0.001408,0.0047137391304347825,**,-0.2174
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Oligodendroglioma,4231,70,276069.0,0.0,0.0,***,-0.8956
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Glial-neuronal tumor NOS,4231,69,167605.0,0.016863,0.04637325,*,-0.1673
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Schwannoma,4231,68,205337.0,0.0,0.0,***,-0.4507
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Sarcoma,4231,49,84217.0,0.031651,0.07616021875,*,0.178
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Neurofibroma/Plexiform,4231,48,134340.0,5.3e-05,0.00021478947368421054,***,-0.3382
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Diffuse hemispheric glioma,4231,33,114884.0,0.0,0.0,***,-0.6586
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Ewing sarcoma,4231,46,84634.5,0.157885,0.2701587777777778,ns,0.1207
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Pineoblastoma,4231,32,64734.5,0.721648,0.8293566567164179,ns,0.0365
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Chordoma,4231,29,47229.5,0.036385,0.08004700000000001,*,0.2248
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,CNS Embryonal tumor,4231,29,47315.5,0.037575,0.08036875,*,0.2234
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Craniopharyngioma,4231,26,56324.0,0.78911,0.868021,ns,-0.0303
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Pilocytic astrocytoma,4231,24,38700.0,0.047991,0.09987316216216216,*,0.2334
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Embryonal tumor with multilayer rosettes,4231,23,15893.5,0.0,0.0,***,0.6716
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Neuroblastoma,4231,22,11591.0,0.0,0.0,***,0.7496
+Phase 3,AGE × CANCER_GROUP,Mann-Whitney,Hemangioblastoma,4231,20,71067.5,0.0,0.0,***,-0.6877
+Phase 3,TF × CANCER_GROUP,Kruskal-Wallis,global,2877,2877,110.0441,0.0,0.0,***,0.0336
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Low-grade glioma,2877,521,651154.0,0.028162,0.07126474193548386,*,-0.061
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,High-grade glioma,2877,271,291537.0,2e-06,1.0266666666666666e-05,***,0.1744
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Medulloblastoma,2877,333,422352.0,0.931148,0.954189,ns,0.0029
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Diffuse midline glioma,2877,367,378181.0,0.0,0.0,***,0.1789
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Ependymoma,2877,236,354543.0,0.000412,0.0015106666666666667,***,-0.1377
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,nan,2877,132,211815.0,0.000937,0.0032795000000000003,***,-0.1692
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Atypical Teratoid Rhabdoid Tumor,2877,95,131657.0,0.950853,0.954189,ns,0.0037
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Ganglioglioma,2877,106,145139.0,0.836247,0.9069157605633803,ns,0.0117
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Adamantinomatous Craniopharyngioma,2877,84,147026.0,6.7e-05,0.00025795,***,-0.2534
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Meningioma,2877,73,89005.0,0.055298,0.1120512105263158,ns,0.1304
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Choroid plexus tumor,2877,67,94519.0,0.954189,0.954189,ns,-0.0041
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Dysembryoplastic neuroepithelial tumor,2877,47,72772.0,0.264079,0.40668166,ns,-0.0942
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Oligodendroglioma,2877,63,89239.0,0.926511,0.954189,ns,-0.0067
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Glial-neuronal tumor NOS,2877,39,51332.0,0.433548,0.5755723448275861,ns,0.0724
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Schwannoma,2877,47,77173.0,0.057284,0.1130991794871795,ns,-0.1604
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Sarcoma,2877,31,47318.0,0.483165,0.6305712711864406,ns,-0.0727
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Neurofibroma/Plexiform,2877,38,68263.0,0.004596,0.01361123076923077,**,-0.2655
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Diffuse hemispheric glioma,2877,34,45802.0,0.597082,0.7303633333333334,ns,0.0523
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Ewing sarcoma,2877,22,30282.0,0.770963,0.8603500144927536,ns,0.0358
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Pineoblastoma,2877,20,25072.0,0.341604,0.47929700000000003,ns,0.1224
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Chordoma,2877,22,29369.0,0.59757,0.7303633333333334,ns,0.0648
+Phase 3,TF × CANCER_GROUP,Mann-Whitney,Craniopharyngioma,2877,22,33150.0,0.65096,0.7711372307692308,ns,-0.0556
+Phase 3,TP × CANCER_GROUP,Kruskal-Wallis,global,2938,2938,56.8332,3.8e-05,0.00016255555555555557,***,0.0132
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Low-grade glioma,2938,542,616823.0,0.023727,0.06299927586206897,*,0.05
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,High-grade glioma,2938,276,372636.0,0.625172,0.7521600624999999,ns,-0.0144
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Medulloblastoma,2938,333,444606.0,0.354476,0.4874045,ns,-0.0251
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Diffuse midline glioma,2938,374,506478.5,0.028691,0.07126474193548386,*,-0.0563
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Ependymoma,2938,238,307806.0,0.181843,0.29791300000000004,ns,0.042
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,nan,2938,136,179859.0,0.170131,0.2847845,ns,0.056
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Atypical Teratoid Rhabdoid Tumor,2938,95,128820.5,0.342355,0.47929700000000003,ns,0.0461
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Ganglioglioma,2938,109,147352.5,0.329463,0.4786537924528302,ns,0.0443
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Adamantinomatous Craniopharyngioma,2938,90,116557.5,0.069123,0.13099014634146344,ns,0.0905
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Meningioma,2938,74,118311.5,0.033456,0.07806400000000001,*,-0.1165
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Choroid plexus tumor,2938,68,114758.0,0.002042,0.006551416666666666,**,-0.176
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Dysembryoplastic neuroepithelial tumor,2938,48,57544.5,0.011867,0.03384292592592593,*,0.1704
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Oligodendroglioma,2938,64,95526.0,0.510591,0.6552584499999999,ns,-0.0387
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Glial-neuronal tumor NOS,2938,40,64927.5,0.104583,0.18727653488372092,ns,-0.1202
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Schwannoma,2938,47,65075.0,0.537868,0.6789481311475409,ns,0.0421
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Sarcoma,2938,32,49785.5,0.392295,0.5299423684210526,ns,-0.0707
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Neurofibroma/Plexiform,2938,38,55368.5,0.948944,0.954189,ns,-0.0049
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Diffuse hemispheric glioma,2938,34,53920.5,0.250551,0.39372300000000005,ns,-0.0922
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Ewing sarcoma,2938,22,32566.5,0.878048,0.9390235555555556,ns,-0.0153
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Pineoblastoma,2938,22,37674.0,0.079625,0.1459791666666667,ns,-0.1745
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Chordoma,2938,22,41518.5,0.003109,0.00957572,**,-0.2944
+Phase 3,TP × CANCER_GROUP,Mann-Whitney,Craniopharyngioma,2938,23,28905.5,0.157323,0.2701587777777778,ns,0.1377
+Phase 3,AGE × TF,Spearman,global,2826,2826,-0.0879,3e-06,1.44375e-05,***,-0.0879
+Phase 3,AGE × TP,Spearman,global,2887,2887,0.039,0.035924,0.08004700000000001,*,0.039
+Phase 3,TF × TP,Spearman,global,2876,2876,-0.0843,6e-06,2.7176470588235296e-05,***,-0.0843

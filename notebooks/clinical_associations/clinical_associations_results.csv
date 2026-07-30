@@ -1,0 +1,12 @@
+Test,Var1,Var2,N,Statistic,Statistic_Val,P_value,Effect_Size,Min_Expected,Table_Shape,Phase,Num_Var,Cat_Var,Effect_Type,N_Groups,FDR_q
+SEX × CANCER_GROUP,SEX,CANCER_GROUP,4056,χ² (Fisher not available for >2×2),157.1438,0.001426,0.1392,0.0,3×55,Phase 2,,,,,0.0017824999999999998
+PRED × CANCER_GROUP,PRED,CANCER_GROUP,4074,χ² (Fisher not available for >2×2),7749.2512,0.0,0.2815,0.0,25×55,Phase 2,,,,,0.0
+SUBTYPE × CANCER_GROUP,SUBTYPE,CANCER_GROUP,4074,χ² (Fisher not available for >2×2),98748.1241,0.0,0.67,0.0,133×55,Phase 2,,,,,0.0
+SEX × PRED,SEX,PRED,4293,χ² (Fisher not available for >2×2),61.8576,0.121266,0.0849,0.0,3×26,Phase 2,,,,,0.121266
+RACE × CANCER_GROUP,RACE,CANCER_GROUP,4074,χ² (Fisher not available for >2×2),660.149,0.0,0.1521,0.0,8×55,Phase 2,,,,,0.0
+Kruskal-Wallis,,,4231,820.3866,,0.0,0.1986,,,Phase 3,AGE,CANCER_GROUP,ε²,27.0,0.0
+Kruskal-Wallis,,,2877,110.0441,,0.0,0.0336,,,Phase 3,TUMOR_FRACTION,CANCER_GROUP,ε²,22.0,0.0
+Kruskal-Wallis,,,2938,56.8332,,3.8e-05,0.0132,,,Phase 3,TUMOR_PLOIDY,CANCER_GROUP,ε²,22.0,4.5600000000000004e-05
+Spearman,,,2826,-0.0879,,3e-06,-0.0879,,,Phase 3,AGE,TF,ρ,2.0,6e-06
+Spearman,,,2887,0.039,,0.035924,0.039,,,Phase 3,AGE,TP,ρ,2.0,0.035924
+Spearman,,,2876,-0.0843,,6e-06,-0.0843,,,Phase 3,TF,TP,ρ,2.0,9e-06

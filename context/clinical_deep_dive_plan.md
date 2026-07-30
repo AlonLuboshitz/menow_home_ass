@@ -53,7 +53,7 @@ notebooks/
 | Phase | Title | Variables Tested | Outcome | Statistical Tests | Threshold | Status |
 |-------|-------|-----------------|---------|------------------|-----------|--------|
 | **1** | Outcome Analysis | AGE, TF, TP, SEX, PREDISPOSITION | OS & EFS (binary + time) | MW, χ², KM + log-rank, Cliff's d, Cramer's V | n ≥ 20 | ✅ Complete |
-| **2 + 3** | Cross-Categorical + Numeric | SEX × CG, PRED × CG, SUBTYPE × CG, AGE × CG, TF × CG, TP × CG + correlations | Association only | χ², Cramer's V, heatmaps, KW + Dunn's, Spearman ρ | n ≥ 20 | ✅ Designed |
+| **2 + 3** | Clinical Associations | SEX, PRED, SUBTYPE, RACE, AGE, TF, TP — per-group enrichment & comparisons | Association only | Binomial, Fisher exact, KW + MW, Spearman ρ, FDR per-family | n ≥ 20 | ✅ Complete |
 | **4** | Multivariate Models | All above combined | OS & EFS (time) | Cox PH, HR forest | n ≥ 20 | 🔲 Planned |
 | **5** | Unsupervised | AGE, TF, TP, SEX, CG, SUBTYPE, etc. | Cluster discovery | PCA, t-SNE, K-means, FAMD, silhouette, log-rank validation | n ≥ 50 | 🔲 Planned |
 | **6** | Summary | All above | Consolidated report | — | — | 🔲 Planned |
@@ -95,6 +95,33 @@ Key considerations:
 ### Effect Sizes
 
 Reported alongside every p-value (Cliff's d, ε², Cramer's V, HR). See general instruction for interpretation thresholds.
+
+### Phase 2+3 Design Details
+
+#### Phase 2 — Cross-Categorical (per-group enrichment tests)
+
+All Phase 2 tests produce **one row per group** in the results CSV, matching the survival_analysis format. FDR is applied **within each test family** (not across families).
+
+| # | Test | Method | Details |
+|---|------|--------|---------|
+| 1 | SEX enrichment | Binomial vs 50:50, per CG | Tests if sex ratio deviates from 50:50. Reports %Male, %Female, which sex is enriched. FDR family: `SEX enrichment` |
+| 2 | Predisposition enrichment | Fisher exact (hypergeometric), per predisposition × per CG | For each specific CANCER_PREDISPOSITIONS value: 2×2 table (has_pred × in_group). Tests if a predisposition is enriched in a specific group vs all others. FDR family: `Predisposition enrichment` |
+| 3 | SUBTYPE distribution | Descriptive heatmap only | Cross-tab of MOLECULAR_SUBTYPE × CANCER_GROUP with count annotations. No statistical tests. |
+| 4 | SEX × Predisposition 3-way | Fisher / Chi² per CG | 2×2: SEX (M/F) × PRED_BINARY (Any predisposition / None). Tests if predisposition status is associated with sex within each cancer group. FDR family: `SEX × Predisposition` |
+| 5 | Race enrichment | Fisher exact (hypergeometric), per race × per CG | For each RACE category: 2×2 table (has_race × in_group). Tests if a race category is enriched in a specific group vs all others. FDR family: `Race enrichment` |
+
+#### Phase 3 — Numeric Comparisons
+
+| # | Test | Method | Details |
+|---|------|--------|---------|
+| 6 | AGE × CANCER_GROUP | Global KW + per-group MW | Kruskal-Wallis across all groups, then each group vs all others via Mann-Whitney. Boxplot ordered by median. FDR family: `AGE × CG` |
+| 7 | TF × CANCER_GROUP | Global KW + per-group MW | Same structure for TUMOR_FRACTION. FDR family: `TF × CG` |
+| 8 | TP × CANCER_GROUP | Global KW + per-group MW | Same structure for TUMOR_PLOIDY. FDR family: `TP × CG` |
+| 9-11 | Numeric correlations | Spearman ρ | AGE×TF, AGE×TP, TF×TP. Scatter plots with LOESS smoother. FDR family: `Numeric correlations` |
+
+### Workflow
+
+Before building any notebook, the corresponding `.md` instruction file and the relevant section of this plan **must be reviewed and approved**. No notebook is built until the plan reflects the agreed design.
 
 ---
 

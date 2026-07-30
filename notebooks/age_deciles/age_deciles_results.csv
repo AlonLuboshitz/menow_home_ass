@@ -1,0 +1,45 @@
+Phase,Group,N,Events,p_value,Significant
+OS,Adamantinomatous Craniopharyngioma,98,3,0.6827742058521232,❌
+OS,Atypical Teratoid Rhabdoid Tumor,141,90,0.0013039036420907646,✅
+OS,CNS Embryonal tumor,24,14,0.016164322308374834,✅
+OS,Chordoma,26,17,0.019319945323178822,✅
+OS,Choroid plexus tumor,89,14,1.038955566023958e-08,✅
+OS,Diffuse hemispheric glioma,26,24,0.0009687760158713088,✅
+OS,Diffuse midline glioma,368,356,9.992007221626409e-15,✅
+OS,Dysembryoplastic neuroepithelial tumor,47,0,1.0,❌
+OS,Embryonal tumor with multilayer rosettes,22,16,0.3749890579002588,❌
+OS,Ependymoma,296,126,0.08650355584594838,❌
+OS,Ewing sarcoma,34,19,3.708899514776043e-05,✅
+OS,Ganglioglioma,123,0,1.0,❌
+OS,Glial-neuronal tumor NOS,47,12,0.012327118483334565,✅
+OS,High-grade glioma,406,327,0.0,✅
+OS,Low-grade glioma,712,59,1.4661365621559952e-07,✅
+OS,Medulloblastoma,382,137,1.180706083681038e-06,✅
+OS,Meningioma,87,13,0.3639983194218095,❌
+OS,Neuroblastoma,22,4,0.2525597444589458,❌
+OS,Neurofibroma/Plexiform,39,9,0.2486911469842269,❌
+OS,Pineoblastoma,27,2,0.26959832958479835,❌
+OS,Sarcoma,45,23,0.0157551334214997,✅
+OS,Schwannoma,46,5,0.5397493503955575,❌
+EFS,Adamantinomatous Craniopharyngioma,98,66,1.996158793815539e-11,✅
+EFS,Atypical Teratoid Rhabdoid Tumor,141,116,0.012889631464783058,✅
+EFS,CNS Embryonal tumor,24,20,0.16314318628588564,❌
+EFS,Chordoma,26,18,0.012543584008691488,✅
+EFS,Choroid plexus tumor,88,25,0.0007533168338225149,✅
+EFS,Diffuse hemispheric glioma,26,25,0.0007126815654017182,✅
+EFS,Diffuse midline glioma,276,270,2.6771806993508562e-11,✅
+EFS,Dysembryoplastic neuroepithelial tumor,47,14,0.021567152310893123,✅
+EFS,Embryonal tumor with multilayer rosettes,22,20,0.0008241814274049242,✅
+EFS,Ependymoma,296,207,0.0001572313958662086,✅
+EFS,Ewing sarcoma,34,20,0.30111370044339103,❌
+EFS,Ganglioglioma,123,52,0.07459076286289856,❌
+EFS,Glial-neuronal tumor NOS,47,30,0.0034504508023117664,✅
+EFS,High-grade glioma,388,348,1.5894019433915219e-10,✅
+EFS,Low-grade glioma,710,369,7.063148489416804e-07,✅
+EFS,Medulloblastoma,382,172,3.86600586727015e-05,✅
+EFS,Meningioma,87,57,8.513872767368369e-05,✅
+EFS,Neuroblastoma,22,17,0.8652072697975853,❌
+EFS,Neurofibroma/Plexiform,39,26,0.018835152301598823,✅
+EFS,Pineoblastoma,27,11,0.032728912545442745,✅
+EFS,Sarcoma,45,37,0.0997303443008778,❌
+EFS,Schwannoma,46,29,0.0028181960483198987,✅

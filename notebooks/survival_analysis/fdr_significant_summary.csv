@@ -1,0 +1,16 @@
+Cancer_Group,N_samples,N_FDR_Significant,Significant_Tests
+Chordoma,26,6,"AGE × OS, AGE × EFS, SEX × OS, SEX × EFS, AGE_DECILE_OS, AGE_DECILE_EFS"
+High-grade glioma,406,5,"AGE × EFS, AGE × OS, SEX × EFS, AGE_DECILE_EFS, AGE_DECILE_OS"
+Diffuse hemispheric glioma,26,5,"AGE × OS, AGE × EFS, SEX × OS, AGE_DECILE_OS, AGE_DECILE_EFS"
+Medulloblastoma,382,4,"AGE × OS, AGE × EFS, AGE_DECILE_EFS, AGE_DECILE_OS"
+Low-grade glioma,712,3,"AGE × EFS, AGE_DECILE_EFS, AGE_DECILE_OS"
+Diffuse midline glioma,368,3,"SEX × EFS, AGE_DECILE_OS, AGE_DECILE_EFS"
+Ependymoma,296,3,"SEX × OS, AGE_DECILE_OS, AGE_DECILE_EFS"
+Atypical Teratoid Rhabdoid Tumor,141,3,"SEX × OS, AGE_DECILE_OS, AGE_DECILE_EFS"
+Schwannoma,46,3,"AGE × OS, TP × EFS, AGE_DECILE_EFS"
+Embryonal tumor with multilayer rosettes,22,3,"AGE × EFS, AGE_DECILE_OS, AGE_DECILE_EFS"
+Adamantinomatous Craniopharyngioma,98,2,"AGE_DECILE_OS, AGE_DECILE_EFS"
+Choroid plexus tumor,89,2,"AGE_DECILE_OS, AGE_DECILE_EFS"
+Glial-neuronal tumor NOS,47,2,"AGE_DECILE_EFS, AGE_DECILE_OS"
+Meningioma,87,1,AGE_DECILE_EFS
+Ewing sarcoma,34,1,AGE_DECILE_OS

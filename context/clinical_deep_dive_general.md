@@ -223,6 +223,48 @@ At the end of the notebook:
 - Print summary with significance counts
 - Save as CSV + Markdown
 
+### 4.5 Step & Hypothesis Annotations
+
+Every analytical step **must be preceded by a markdown cell** that clearly, in big words, states what the step is testing and what hypothesis is being checked. This is not optional — it ensures every test in the notebook is self-documenting and readable at a glance.
+
+**Format (as a standalone markdown cell before the code cell):**
+
+```markdown
+## 📌 What We're Checking
+**Does [variable] differ/associate/correlate with [outcome] in [population]?**
+```
+
+**Examples (as markdown cells):**
+
+```markdown
+## 📌 What We're Checking
+**Is there a sex bias in this cancer group compared to 50:50?**
+```
+
+```markdown
+## 📌 What We're Checking
+**Does the predisposition makeup of this cancer group differ from all other cancers combined?**
+```
+
+```markdown
+## 📌 What We're Checking
+**Does AGE differ across cancer groups? Which groups are outliers?**
+```
+
+```markdown
+## 📌 What We're Checking
+**Is AGE associated with TUMOR_FRACTION?**
+```
+
+For non-statistical cells (descriptive plots, setup, summary), use a markdown cell with:
+
+```markdown
+## 📌 Purpose
+**Describe the goal of this cell (no tests performed).**
+```
+
+The markdown cell must appear **immediately before** the corresponding code cell. The code cell itself should still include a `# ── Checks: ...` comment at the top for machine-readability and quick scanning.
+
 ---
 
 ## 5. Phases Overview

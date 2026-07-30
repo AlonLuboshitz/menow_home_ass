@@ -124,6 +124,8 @@ All Phase 2 tests produce **one row per group** in the results CSV, matching the
 
 Before building any notebook, the corresponding `.md` instruction file and the relevant section of this plan **must be reviewed and approved**. No notebook is built until the plan reflects the agreed design.
 
+**Notebook convention:** Every test cell must start with a `# ── Checks: "..."` comment stating the hypothesis. See `clinical_deep_dive_general.md §4.5`.
+
 ---
 
 ## References

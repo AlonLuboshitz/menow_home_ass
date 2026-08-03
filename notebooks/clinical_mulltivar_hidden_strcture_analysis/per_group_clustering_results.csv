@@ -1,0 +1,11 @@
+CANCER_GROUP,N,k,Silhouette,OS_logrank_p,EFS_logrank_p
+Low-grade glioma,438,7,0.4496,0.094062,0.018072
+High-grade glioma,197,7,0.4152,7.6e-05,0.001927
+Medulloblastoma,289,10,0.373,0.015585,0.460985
+Diffuse midline glioma,236,7,0.3705,0.01195,0.005247
+Ependymoma,200,8,0.5049,0.427926,0.454436
+Atypical Teratoid Rhabdoid Tumor,91,7,0.5124,0.228119,0.337533
+Ganglioglioma,82,7,0.4693,1.0,0.229519
+Adamantinomatous Craniopharyngioma,71,4,0.5261,0.085612,0.031198
+Choroid plexus tumor,58,8,0.458,0.812645,0.194167
+Meningioma,62,10,0.4509,0.580068,0.067486

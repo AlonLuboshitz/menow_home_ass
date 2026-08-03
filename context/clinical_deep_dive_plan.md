@@ -54,8 +54,8 @@ notebooks/
 |-------|-------|-----------------|---------|------------------|-----------|--------|
 | **1** | Outcome Analysis | AGE, TF, TP, SEX, PREDISPOSITION | OS & EFS (binary + time) | MW, χ², KM + log-rank, Cliff's d, Cramer's V | n ≥ 20 | ✅ Complete |
 | **2 + 3** | Clinical Associations | SEX, PRED, SUBTYPE, RACE, AGE, TF, TP — per-group enrichment & distribution | Association only | Binomial, Chi-squared, KW + MW, Spearman ρ, FDR per-family | n ≥ 20 | 🔲 Plan review |
-| **4** | Multivariate Models | All above combined | OS & EFS (time) | Cox PH, HR forest | n ≥ 20 | 🔲 Planned |
-| **5** | Unsupervised | AGE, TF, TP, SEX, CG, SUBTYPE, etc. | Cluster discovery | PCA, t-SNE, K-means, FAMD, silhouette, log-rank validation | n ≥ 50 | 🔲 Planned |
+| **4** | Multivariate Models | All above combined | OS & EFS (time) | Cox PH, HR forest | n ≥ 20 | 🔲 Plan review |
+| **5** | Unsupervised | AGE, TF, TP, SEX, CG, SUBTYPE, etc. | Cluster discovery | PCA, t-SNE, K-means, FAMD, silhouette, log-rank validation | n ≥ 50 | 🔲 Plan review |
 | **6** | Summary | All above | Consolidated report | — | — | 🔲 Planned |
 
 ---
@@ -126,6 +126,95 @@ Before building any notebook, the corresponding `.md` instruction file and the r
 
 **Notebook convention:** Every test cell must start with a `# ── Checks: "..."` comment stating the hypothesis. See `clinical_deep_dive_general.md §4.5`.
 
+### Phase 4 — Multivariate Models (Stratified Cox PH)
+
+**Goal:** Estimate the *independent* contribution of each clinical variable to OS and EFS, after adjusting for the others.
+
+**Model structure:**
+- Stratified Cox PH: `strata(CANCER_GROUP)` — allows different baseline hazards per cancer group without assuming proportional hazards across groups
+- One model for OS, one for EFS (identical formula)
+- Outcome columns: `OS_MONTHS` / `OS_STATUS` and `EFS_MONTHS` / `EFS_STATUS`
+
+**Covariates:**
+| Variable | Type | Notes |
+|----------|------|-------|
+| AGE | Continuous (years) | Per 1-year increase |
+| SEX | Binary (Male/Female) | Female vs Male reference |
+| TUMOR_FRACTION | Continuous (0-1) | Per 1-unit increase |
+| TUMOR_PLOIDY | Continuous | Per 1-unit increase |
+| CANCER_PREDISPOSITIONS | Categorical | Only included if Phase-1 significant (conditional) |
+
+**Outputs:**
+| # | Cell Type | Checks / Purpose | Content |
+|---|-----------|------------------|---------|
+| 1 | 📌 Checks Markdown | "Does each variable independently predict OS after adjusting for the others?" | — |
+| 2 | Code | Fit stratified Cox PH (OS) | Print summary: HR, 95% CI, p-value, Wald statistic, concordance index, log-likelihood, AIC |
+| 3 | Code | Fit stratified Cox PH (EFS) | Same summary for EFS |
+| 4 | Code | Forest plot (OS) | Horizontal: all predictors' HR + 95% CI on log scale. Reference line at HR=1. Color by significance. |
+| 5 | Code | Forest plot (EFS) | Same for EFS |
+| 6 | Code | Proportional hazards check | Schoenfeld residual test — global + per-variable p-values. Flag violations. |
+| 7 | 📌 Checks Markdown | "Is the effect of each predictor consistent across cancer groups?" | — |
+| 8 | Code | Subgroup forest plots (OS) | For each predictor: per-group univariate HR + 95% CI vs global stratified HR (reference line). 4 plots. |
+| 9 | Code | Subgroup forest plots (EFS) | Same for EFS. 8 plots total across OS and EFS. |
+| 10 | Code | Validation | Print sample sizes per group, event counts, verify n≥20 threshold. |
+
+**Statistical details:**
+- No FDR correction (single model per outcome — all p-values reported as-is)
+- Stratified Cox: `CoxPHFitter(strata=["CANCER_GROUP"])` in lifelines
+- PH assumption: `proportional_hazard_test()` (Schoenfeld residuals)
+- Effect size: HR with 95% CI (log HR ± 1.96 × SE)
+- Concordance: reported as C-index
+- PREDISPOSITION included conditionally: check Phase-1 results; if p<0.05 in any univariate test → include
+
+### Phase 5 — Unsupervised Subgroup Discovery
+
+**Goal:** Let the clinical data reveal hidden patient subgroups, then validate them against survival.
+
+**Threshold:** n ≥ 50 per cancer group
+
+**Two parallel feature approaches (compare):**
+1. **Numeric-only (PCA + t-SNE):** AGE, TF, TP (standardized)
+2. **Mixed via FAMD:** AGE, TF, TP + SEX, CANCER_PREDISPOSITIONS, RACE_GROUP, MOLECULAR_SUBTYPE
+
+**Two stages (both executed):**
+- **Stage A — Pooled:** All qualifying patients together → cross-group clusters
+- **Stage B — Per-group:** Each cancer group separately → within-type subgroups
+
+#### Stage A — Pooled Discovery
+
+| # | Cell Type | Checks / Purpose | Content |
+|---|-----------|------------------|---------|
+| 1 | 📌 Checks Markdown | "Can we discover hidden patient subgroups using clinical features?" | — |
+| 2 | Code | PCA on numeric (AGE, TF, TP) | Standardize → PCA → scree plot (variance explained per component) + 2D scatter with dropdown to color by CANCER_GROUP / OS_STATUS / MOLECULAR_SUBTYPE |
+| 3 | Code | t-SNE on numeric (same raw scaled features) | 2D projection + scatter with same dropdown coloring. Perplexity=30 default. |
+| 4 | Code | FAMD on mixed data | AGE, TF, TP (numeric) + SEX, PRED, RACE, SUBTYPE (categorical). 2D scatter with interactive coloring by CG/OS/SUBTYPE. |
+| 5 | Code | K-means on PCA embedding | k=2..10: elbow plot (inertia) + silhouette score. Highlight best k. |
+| 6 | Code | K-means on FAMD embedding | Same elbow + silhouette. Compare k selections. |
+| 7 | Code | Cluster assignment | Assign clusters using best k for PCA. Scatter plots re-colored by cluster label. |
+| 8 | Code | Survival validation (PCA clusters) | KM curves for OS + EFS per cluster. Log-rank p-value. |
+| 9 | Code | Survival validation (FAMD clusters) | Same for FAMD-based clusters. |
+| 10 | Code | Cluster profiles | Table: mean AGE, %Female, top 3 predispositions, race distribution per cluster. |
+
+#### Stage B — Per-Group Discovery
+
+| # | Cell Type | Checks / Purpose | Content |
+|---|-----------|------------------|---------|
+| 11 | 📌 Checks Markdown | "Within each cancer type, do distinct subpopulations exist?" | — |
+| 12 | Code | Loop over CGs ≥ 50 | For each group: standardize AGE, TF, TP → PCA + t-SNE + elbow/silhouette (k=2..10) → pick best k → K-means → scatter with dropdown coloring (by cluster, OS, SUBTYPE) |
+| 13 | Code | Survival per group | KM curves (OS + EFS) per cluster within each CG. Log-rank p. |
+| 14 | Code | Summary table | One row per CG: N, k chosen, silhouette score, log-rank p-value (OS), log-rank p-value (EFS), top distinguishing features |
+
+#### Plotting details
+- All scatter plots (PCA, t-SNE, FAMD) use **Plotly** with **dropdown menus** to switch color-by variable between: CANCER_GROUP / OS_STATUS / MOLECULAR_SUBTYPE / Cluster
+- Hover displays: patient ID, all feature values, assigned cluster
+- PCA/FAMD: show % variance explained in axis labels (e.g., "PC1 (34.2%)")
+- FAMD implemented via: standardize numeric columns, one-hot encode categorical columns, concatenate, then PCA (or use prince.FAMD if available)
+
+#### Statistical details
+- No FDR correction (discovery-oriented, not hypothesis-testing)
+- Cluster count determined by elbow + silhouette; report both
+- Survival validation: log-rank test across clusters within each analysis
+
 ---
 
 ## References
@@ -135,6 +224,7 @@ Before building any notebook, the corresponding `.md` instruction file and the r
 | General Methodology | `context/clinical_deep_dive_general.md` | Shared stats, formatting, imports, helpers |
 | Phase 1 (Survival Analysis) | `notebooks/survival_analysis/survival_analysis.md` | Outcome Analysis details |
 | Phase 2+3 (Associations) | `notebooks/clinical_associations/clinical_associations_analysis.md` | Cross-Categorical + Numeric Comparisons |
+| Phase 4+5 (Multivariate + Unsupervised) | `notebooks/clinical_mulltivar_hidden_strcture_analysis/clinical_mulltivar_hidden_strcture_analysis.md` | Multivariate Models + Subgroup Discovery |
 | Basic Notebook | `notebooks/clinical_analysis.ipynb` | Exploratory baseline |
 | Assignment | `context/assignment.md` | Original task description |
 | Reference Paper | `context/referencess.md` | TCGA glioma statistical methods |

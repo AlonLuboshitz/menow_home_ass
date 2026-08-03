@@ -18,16 +18,7 @@
 \begin{document}
 
 \maketitle
-
-\section{Introduction}
-
-\section{Data Processing and Methods}
-
-\section{Results}
-in tf vs os\_status we see high tf has \big(lower) death rate which is wierd. the km plot show differenlty.
-this might be due to the fact alot of samples with high tf (1) has lower death rate (why?) but at high tf ratios (0.7-0.9~) 
-there is high death, and the tf=1 is baising the analysis. we should separate tf =1 samples and see the results. 
-
+\section{Summary}
 Questions like what cancer group is interesting or what is interesting in the data are challaneging questions and 
 could be tackled in few ways. A simple yet powerfull approach would be to tackle groups that has strong 
 statistics to work on (number of samples and so on). Picking these groups and conducting an analysis on them would be reproducible 
@@ -35,14 +26,130 @@ among other groups and can reveal novel outcomes.
 
 Never the less, to answer these questions I conducted a systematic "unsupervised" approach where
 I assumed no prior knowledge, or bais on the data. I wanted to highlight interesting variables (clinical, genomic) that 
-can shed light on groups/sub groups in the data. To do so i first investigated the clinical metadata by visulatizing and
-statisticaly quesionting is varible X (Age, Sex, Tf...) differs in Cancer groups and is it related to death/event status. I evaluated
-X combinations and found that: cancer groups yyy, differs in variables ,,,. I further conducted unsupervised clustering techniquies 
+can shed light on cancer groups/sub groups (CG, CSG) in the data. To do so i first investigated the clinical metadata by visulatizing and
+statisticaly quesionting is varible X ("Age", "Sex", "Tf", etc.) differs in cancer groups and is it related to death/event status.
+I evaluated X combinations and found that: cancer groups yyy, differs in variables ,,,. I further conducted unsupervised clustering techniquies 
 on these variables to explore the data structure and found:
 Second, I utilized the mRNA expression matrix and tried to identify correlated, mutual exclusive, and co-occuring genes. I further 
 tried to connect this insights into my prevoius findings on the clinical data and reveal novel sub groups among patients. I found that
 the genes: X,Y,Z are in..
-A further inspection about the rule of these genes, thier biological pathways is needed.  
+A further inspection about the rule of these genes, thier biological pathways is needed.
+\section{Introduction}
+
+\section{Methods}
+\subsection{Data processing}
+I processed the clinical metadata of the PBTA RNA study which includes two tables: patient-level and sample-level tables
+with 2870 and 4312 samples, respectively. I merged the two tables on the patient id, which resulted in 4074 samples
+(2701 unique patients) with a known CG. To analyze the data I converted the OS and EFS status values into labels and event
+flags, merged missing RACE and ETHINICY values into "Unknown", mapped the cancer PREDISPOSITION into 
+"No predisposition"/"Unknown", and merged blank or "To be classified" molecular subtypes into "Unclassified". 
+For the AGE distribution I detected outliers with the Tukey IQR rule (AGE > Q3 + 1.5*IQR = 27.125 yr), which flagged 
+62 patients.
+
+\subsubsection{Statistic analysis}
+To evalute the data statisticaly, I computed the \% of missing values in each column to identify noisy variables. 
+To compare CGs, I tested every CG with n >= 20 samples (excluding 33 CGs): SEX was tested against a 50:50 baseline with a 
+binomial test, while PREDISPOSITION and RACE compositions were tested with Chi-squared tests 
+(Fisher exact when the expected counts were < 5), reporting Cramer's V as the effect size. 
+For the numeric variables AGE, TUMOR\_FRACTION (TF), and TUMOR\_PLIDY (TP) i used a Kruskal-Wallis test followed by per-group Mann-Whitney tests
+(each CG vs all the others). i corrected the p-values within each family of tests using the Benjamini-Hochberg FDR
+method and considered q < 0.05 as significant, always reporting the raw p next to the adjusted q. 
+Finaly, i computed spearman (and pearson) correlations between AGE, TF and TP, and ordered the CGs by similar
+race composition using hierarchical clustering. All the processing and statistics were implemented in python
+(pandas, scipy, statsmodels) as executed notebooks.
+
+\subsubsection{Survival analysis}
+To test whether the previously analyzed variables affect survival, I used time-to-event
+analyses on the OS and EFS endpoints. I plotted Kaplan--Meier (KM) curves per CG ($n \geq 20$) and 
+each group's survival was compared against all others combined
+with log-rank tests (multiple-testing correction as above). Each variable was then tested
+against survival status (Mann--Whitney $U$ for AGE, TF, and TP; Chi-squared for SEX and
+predisposition), and numeric variables were dichotomized at their median to test KM
+separation with log-rank tests. Finally, I fitted a multivariate Cox proportional-hazards
+model with AGE, SEX, TUMOR\_FRACTION, and TUMOR\_PLOIDY as covariates, stratified by cancer
+group, on complete cases, reporting Wald p-values, hazard ratios with 95\% confidence
+intervals, and Schoenfeld residuals to check the proportional-hazards assumption. Analyses
+were implemented in Python (scipy, lifelines) as executed notebooks.
+
+For individual cancer groups..
+
+\section{Results}
+\subsection{Meta data and clinical analysis}
+To begin with i conducut a simple visualization and summarization of the clinical and demogrpahic data including statstics and 
+histograms. I noticed that event-free surival (EFS) and overall survival (OS) months variables has ~28\% Null values (Figure 1A). 
+In total 65.3\% has a living status via the OS variabel, whereas for the EFS variable, half the patients exhibit no event 
+and the other half splitted between different events (Figure 1B, C). This demonstrate the value of investigating the 
+EFS rather than OS where EFS provides additional information ~cite{}. Furthermore, the "AGE" (age of diagnosis) right skewed
+historgram suggests outliers or misleading data points as this is a kids dataset (Figure 1D). A further inspection revealed
+that most of this data points (53/62) belong to oligodendrogliomas paitens (Figure 1E). A quick web search suggested
+that this cancer is an adult cancer, and therefor removing these data points for subseqeunt analysis should be consider.
+
+Investigating the samples dataset demonstrated ~20-40\% Null values in Tumor fraction (TF) and ploidy (TP), RNA selection, and 
+matching id samples (Figure 2A). Among the 55 cancer groups Low-grade glioma (LGG) has most cases (862). 
+3 groups has 300-500, 7 groups has 70-200 cases, and 45 groups has less then 70 cases (Figure 2B). The molecular
+subtype information aligns well with the cancer group, despite 13 molecular subtypes belonging to 2 or more disticnt CGs
+(Figure 2C). This suggests eather wrong labeling of the sub molecular type or some sub type belonging 
+to multiple CGs.
+
+\subsection{Cross datasets analysis}
+Next, to reveal diffrences between cancer groups, I evaluated whether certain variales are enrichet among differnet cancer groups.
+To do so, I evaluated the categorical variables "SEX", "predisposition", and "race" using Binomial, Chi-squared and Fisher extact
+tests. For the numeric variables "AGE", "TF", and "TP" i used Kruskal-Wallis and per-group Mann-Whitney tests between CGs. 
+
+I found that for 6 CGs the male to female disterbution is sigfnicaly different (Figure 3A) compared to 50:50 baseline.
+Furthermore, among patients with predispositions (~9\%), 5 CGs have different prediposition composition (Figure 3B).
+Lastly, 9 CGs showed difference in race composition compared to the overall race composition in the dataset (Figure 3C).
+These findings suggests that sex, race and predisposition could co-occur with different CGs. Lastly as demonstrated in 
+(Figure 3C), some CGs shows similar predispositions compositions, suggesting a relation between these CGs. 
+A further inspection on these CGs could reveal the connection. Next, I demonstarted that 14, 6, and 4 CGs are significally
+diffiriante by AGE, TF, and TP variables (Figure 3D, E, F). Investigating their pearson/spearman correlations (Figure 3G, H)
+yielded significant p values (5/6) with no observed trends possibly due to high sample amount. 
+
+\subsubsection{Survival analysis}
+To test diffrences in survival patterns globaly and across CGs, I evaluated all the prevoius analyzed variables and tested their
+effect on OS and EFS. First I plotted the KM curves for the top CGs and compared each group's survival rates agiasnt the rest of the
+groups (Figure 4A OS, B EFS). I demonsrated that 15 and 16 CGs have statististically different KM plots for OS and EFS, respectively.
+Next, I evaluated wether each variable differs the survival states using the Man Whitney test globaly across the data. 
+I found that the variable x,y,z are diffrenet in the OS (Figure 4C) where the variables are diffrenet in the EFS (Figure 4D).
+To estimate the global diffrence for these variable on the KM plot i decothizied the variable by their median and binary value
+for numeric and binary variables, respectively. I found that the variables X,y,z differs in OS (Figure 4E) whereas a,B,d
+differs in EFS (Figure 4F). Lastly, to evalaute the combination of these variable togther I applied a Cox-hazard model on 
+the global dataset. For OS, only the AGE variable is significant with 95\% CI and HR of (xx - xx, yy) (Figure 4G) 
+meaning higher age decrease the hazard. For EFS both AGE and TP are significant with CIs and HRs of (xx -xx ,yy, zz-zz,kk, respectively)
+(Figure 4H) meaning higher age decrease the hazard and higher TP increases the hazard. Intresitgnly when examing the TF 
+affect on OS outcome higher TF values has lower death rate. Contradictly, the higher TF in the KM has lower survival rates.
+This can be explained by the fact that alot of samples with high TF values (1) has lower death rate (why?) 
+but at high tf ratios (0.7-0.9~) there is high death rate. The TF==1 is might bias the analysis and future analysis 
+should consider excluding TF==1 samples. 
+
+
+% relay on clincal_analysis_excuted step 12 and survival_analysis_executed global 
+    % 4C and 4D are the global plots for all variables. so X axis is the variables - age,TF,Sex... and has the status colored.
+% 4D is the same for EFS.
+% 4E mini KM plots for all variables OS
+% 4F mini km plots for all variable EFS
+% 4G forest plot OS - have legend of crimson, forestgreen and lightgray and the ci values for the variables.
+% 4H forst plot EFS
+
+
+
+Next, I evaluated if these variables differ the OS and EFS outcomes inside each CGs. To do so, for each group, I decotozhied
+the samples based on the evaluated variables and compared the KM plots. I demonstrated that with OS outcome AGE, TF, TP, 
+PREDISPOSITION, and SEX differs in x, y, z, a, and GC, respectively \ref{Table x}. For EFS outcome AGE, TF, TP, 
+PREDISPOSITION, and SEX differs in x, y, z, a, and GC, respectively \ref{Table y}. To further evaluate the AGE power to diffrintiate
+patients inside CG, I deciled the AGE variable in 10\% increasing ratios and evaluated the diffrences on the OS and EFS outcomes.
+I concluded that the diffrences are more statistically significant (the p-values are much lower) \ref{Table comparison}. Lastly,
+I applied the Cox-PH model to every CG and demonstrated that for OS outcome, in GNT tumor higher AGE increases the risk whereas in DMG, HGG, and 
+MB CGs it decreases the risk. Moreover, in both OS and EFS outcomes all examined variables expect TP in OS have an significant 
+affect on risk.  
+
+
+    
+    
+
+
+
+  
 \section{Conclusions and Future Directions}
 
 \section{References}

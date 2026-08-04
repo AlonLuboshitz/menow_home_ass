@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Build notebooks/fig_survival_analysis.ipynb (executed later via nbconvert).
 
-One self-contained code cell per panel (4.A-4.H), each printing its label first,
+One self-contained code cell per panel (4.A-4.K), each printing its label first,
 drawing the panel with matplotlib, and carrying hide-input metadata.
 Spec: context/figure_instructions/fig_survival_analysis.md
 Master instruction: context/general_notebook_instruction.md
@@ -13,7 +13,8 @@ OUT = "/home/alon/menow_home_ass/notebooks/fig_survival_analysis.ipynb"
 
 TITLE_MD = ("# Figure 4\n\n"
             "Survival analysis \u2014 KM by cancer group (A/B), variable \u00d7 outcome status "
-            "(C/D), mini-KM (E/F), and stratified Cox forest plots (G/H)")
+            "(C/D), mini-KM (E/F), TF=1 bias sensitivity (G), stratified Cox forest plots (H/I), "
+            "and per-cancer-group univariate Cox (J/K)")
 
 DATA_DIR = "/home/alon/menow_home_ass/PBTA_RNA"
 PATIENT_FILE = f"{DATA_DIR}/data_clinical_patient_attributes.txt"
@@ -23,6 +24,8 @@ COMMON = '''import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats import mannwhitneyu, chi2_contingency
+from lifelines import CoxPHFitter
+import warnings
 
 PATIENT_FILE = "@@PATIENT_FILE@@"
 SAMPLE_FILE  = "@@SAMPLE_FILE@@"
@@ -57,12 +60,15 @@ def clean_pred(d):
     d["CANCER_PREDISPOSITIONS"] = d["CANCER_PREDISPOSITIONS"].replace("None documented", "No predisposition")
     return d
 
-pat = read_patients(); smp = read_samples()
-pat = clean_os(pat); pat = clean_efs(pat); pat = clean_pred(pat)
-df = smp.merge(pat, on="PATIENT_ID", how="left")
-df = df[df["CANCER_GROUP"].notna() & (df["CANCER_GROUP"].astype(str).str.strip() != "")].copy()
-for col in ["SEX", "CANCER_GROUP", "CANCER_PREDISPOSITIONS"]:
-    df[col] = df[col].astype(str)
+# Load + clean once; later cells reuse `df` from the kernel (guard keeps each
+# cell runnable in isolation while avoiding re-reading the data on full runs).
+if "df" not in globals():
+    pat = read_patients(); smp = read_samples()
+    pat = clean_os(pat); pat = clean_efs(pat); pat = clean_pred(pat)
+    df = smp.merge(pat, on="PATIENT_ID", how="left")
+    df = df[df["CANCER_GROUP"].notna() & (df["CANCER_GROUP"].astype(str).str.strip() != "")].copy()
+    for col in ["SEX", "CANCER_GROUP", "CANCER_PREDISPOSITIONS"]:
+        df[col] = df[col].astype(str)
 
 def cliffs_delta(x, y):
     n_x, n_y = len(x), len(y)
@@ -146,22 +152,23 @@ def logrank_multi(groups):
     except Exception:
         return 1.0
 
-def status_box(ax, col, xlabel, outcome):
+def status_box(ax, col, xlabel, outcome, data=None):
+    src = df if data is None else data
     if outcome == "OS":
-        d = df.dropna(subset=[col, "OS_STATUS"]).copy()
+        d = src.dropna(subset=[col, "OS_STATUS"]).copy()
         d["os_label"] = d["OS_STATUS"].str.replace(r"^\\d+:", "", regex=True)
         g0 = d[d["os_label"] == "LIVING"][col]
         g1 = d[d["os_label"] == "DECEASED"][col]
         lab0, lab1, c0, c1 = "LIVING", "DECEASED", "#2ecc71", "#e74c3c"
     else:
-        d = df.dropna(subset=[col, "efs_event"]).copy()
+        d = src.dropna(subset=[col, "efs_event"]).copy()
         g0 = d[d["efs_event"] == 0][col]
         g1 = d[d["efs_event"] == 1][col]
         lab0, lab1, c0, c1 = "No Event", "Event", "#3498db", "#e67e22"
     u, p = mannwhitneyu(g0, g1, alternative="two-sided")
     eff = cliffs_delta(g0.values, g1.values)
     print(f"{col} x {outcome}: U={u:.0f} p={p:.4f} d={eff:.3f} N={len(g0)+len(g1)}")
-    bp = ax.boxplot([g0, g1], labels=[lab0, lab1], patch_artist=True,
+    bp = ax.boxplot([g0, g1], tick_labels=[lab0, lab1], patch_artist=True,
                     showfliers=False, widths=0.5,
                     medianprops=dict(color="black", lw=1.3),
                     whiskerprops=dict(color="0.25", lw=0.9),
@@ -210,14 +217,15 @@ def km_mini(ax, g1, g2, time_col, event_col, lab1, lab2, col1, col2, title, subl
     km = kaplan_meier(g2[time_col], g2[event_col])
     plot_km(ax, km, col2, label=f"{lab2} (n={len(g2)})")
     sig = p < 0.05
-    ax.set_xlabel("Months", fontsize=8)
-    ax.set_ylabel(ylab, fontsize=8)
+    ax.set_xlabel("Months", fontsize=11)
+    ax.set_ylabel(ylab, fontsize=11)
     ax.set_ylim(-0.02, 1.02)
     ax.set_title(f"{title} \u2014 log-rank p={p:.4f}{'' if sig else ' (ns)'}",
-                 fontsize=9, fontweight="bold" if sig else "normal")
-    ax.legend(fontsize=6, frameon=False, loc="upper right")
-    ax.text(0.0, 1.02, subletter, transform=ax.transAxes, fontsize=11, fontweight="bold",
-            va="bottom", ha="left")
+                 fontsize=12, fontweight="bold" if sig else "normal")
+    ax.legend(fontsize=9, frameon=False, loc="upper right")
+    ax.text(0.0, 1.0, subletter, transform=ax.transAxes, fontsize=13, fontweight="bold",
+            va="top", ha="left", bbox=dict(facecolor="white", alpha=0.6,
+                                           edgecolor="none", pad=0.5))
     return p
 
 def forest_panel(cph, title, metrics, panel_letter):
@@ -258,8 +266,8 @@ def forest_panel(cph, title, metrics, panel_letter):
     def fmt_p(p):
         return "p<0.001" if p < 0.001 else f"p={p:.3f}"
     for yi, r in zip(ypos, rows):
-        ax.text(1.005, yi, f"HR {r['hr']:.2f} ({r['ci_lower']:.2f}-{r['ci_upper']:.2f})  {fmt_p(r['p_value'])}",
-                transform=ax.transAxes, va="center", ha="left", fontsize=8)
+        ax.text(1.01, yi, f"HR {r['hr']:.2f} ({r['ci_lower']:.2f}-{r['ci_upper']:.2f})  {fmt_p(r['p_value'])}",
+                transform=ax.get_yaxis_transform(), va="center", ha="left", fontsize=8)
     ax.set_xlabel("Hazard ratio (95% CI, log scale)")
     ax.set_title(f"{title}\\nStratified by CANCER_GROUP", fontsize=10)
     handles = [Line2D([0], [0], marker="D", color="w", markerfacecolor="forestgreen", markersize=8, label="sig, HR<1"),
@@ -270,6 +278,59 @@ def forest_panel(cph, title, metrics, panel_letter):
     fig.text(0.005, 0.95, panel_letter, fontsize=15, fontweight="bold", va="top", ha="left")
     fig.subplots_adjust(left=0.24, right=0.55, top=0.84, bottom=0.14)
     plt.show()
+
+def subgroup_forest_mpl(axes, coxd, outcome_col, event_col, predictors, min_events=5):
+    """Per-cancer-group univariate Cox forest (matplotlib port of subgroup_forest
+    in clinical_mulltivar_hidden_strcture_analysis). One panel per predictor."""
+    for ax, pred in zip(axes, predictors):
+        results = []
+        for cg in sorted(coxd["CANCER_GROUP"].unique()):
+            sub = coxd[coxd["CANCER_GROUP"] == cg].dropna(subset=[outcome_col, event_col, pred])
+            if int(sub[event_col].sum()) < min_events:
+                continue
+            if pred == "SEX":
+                sexes = sub["SEX"].dropna().unique()
+                if len(sexes) < 2:
+                    continue
+                sub = sub[sub["SEX"].isin(sexes)]
+            try:
+                with warnings.catch_warnings():
+                    # Convergence/overflow warnings are expected for tiny per-CG fits.
+                    warnings.simplefilter("ignore")
+                    cph = CoxPHFitter()
+                    formula = "C(SEX)" if pred == "SEX" else pred
+                    cph.fit(sub, duration_col=outcome_col, event_col=event_col, formula=formula)
+                    hr = float(np.exp(cph.params_.iloc[0]))
+                    ci = np.exp(cph.confidence_intervals_.iloc[0])
+                    p = float(cph.summary["p"].iloc[0])
+            except Exception:
+                continue
+            results.append({"cg": cg, "hr": hr, "lo": float(ci.iloc[0]), "hi": float(ci.iloc[1]),
+                            "p": p, "n": len(sub), "ev": int(sub[event_col].sum())})
+        if not results:
+            ax.axis("off")
+            ax.set_title(f"{pred} \u2014 no data", fontsize=10)
+            continue
+        res = pd.DataFrame(results).sort_values("hr")
+        ypos = np.arange(len(res))
+        for yi, r in zip(ypos, res.to_dict("records")):
+            c = "forestgreen" if (r["p"] < 0.05 and r["hr"] < 1) else \
+                "crimson" if (r["p"] < 0.05 and r["hr"] > 1) else "lightgray"
+            ax.plot([r["lo"], r["hi"]], [yi, yi], color=c, lw=2.0, zorder=2)
+            ax.scatter([r["hr"]], [yi], marker="D", s=38, color=c, zorder=3)
+        ax.axvline(1.0, color="gray", ls="--", lw=1)
+        ax.set_xscale("log")
+        ax.set_xlim(0.05, 20)
+        ax.set_xticks([0.1, 0.5, 1, 2, 5, 10])
+        ax.set_xticklabels(["0.1", "0.5", "1", "2", "5", "10"], fontsize=10)
+        ax.set_yticks(ypos)
+        ax.set_yticklabels([r["cg"] for r in res.to_dict("records")], fontsize=10)
+        ax.set_title(f"{pred} \u2014 univariate Cox (min {min_events} events)", fontsize=12)
+        ax.set_xlabel("HR (95% CI, log scale)", fontsize=11)
+        print(f"  [{pred}] {len(res)} CGs fitted, {(res['p'] < 0.05).sum()} significant:")
+        for _, r in res[res["p"] < 0.05].iterrows():
+            print(f"    {r['cg']}: HR={r['hr']:.3f} ({r['lo']:.3f}-{r['hi']:.3f}) "
+                  f"p={r['p']:.4f} n={int(r['n'])} events={int(r['ev'])}")
 '''
 
 # ── Panel A: OS by Cancer Group ──────────────────────────────────────────────
@@ -329,9 +390,11 @@ anno = "global OS log-rank p<0.0001" if po < 0.0001 else f"global OS log-rank p=
 ax.set_ylim(-0.05, 1.05)
 ax.set_xlabel("Months")
 ax.set_ylabel("Overall survival probability")
-ax.set_title(f"OS by Cancer Group \u2014 {anno}; n = complete OS records; * p<0.05, ** FDR<0.05 vs all others", fontsize=10)
-ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1.0), fontsize=8, frameon=False)
-ax.text(0.0, 1.02, "A", transform=ax.transAxes, fontsize=15, fontweight="bold", va="bottom", ha="left")
+ax.set_title(f"OS by Cancer Group \u2014 {anno}", fontsize=10)
+ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1.0), fontsize=8, frameon=False,
+          title="n = complete OS records\\n* p<0.05, ** FDR<0.05 vs all others", title_fontsize=8)
+fig.text(0.008, 0.985, "A", fontsize=15, fontweight="bold", va="top", ha="left",
+         bbox=dict(facecolor="white", alpha=0.6, edgecolor="none", pad=0.5))
 fig.tight_layout()
 plt.show()
 '''
@@ -396,9 +459,11 @@ anno = "global EFS log-rank p<0.0001" if pe < 0.0001 else f"global EFS log-rank 
 ax.set_ylim(-0.05, 1.05)
 ax.set_xlabel("Months")
 ax.set_ylabel("Event-free survival probability")
-ax.set_title(f"EFS by Cancer Group \u2014 {anno}; n = complete OS records (as in A); * p<0.05, ** FDR<0.05 vs all others", fontsize=10)
-ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1.0), fontsize=8, frameon=False)
-ax.text(0.0, 1.02, "B", transform=ax.transAxes, fontsize=15, fontweight="bold", va="bottom", ha="left")
+ax.set_title(f"EFS by Cancer Group \u2014 {anno}", fontsize=10)
+ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1.0), fontsize=8, frameon=False,
+          title="n = complete OS records (as in A)\\n* p<0.05, ** FDR<0.05 vs all others", title_fontsize=8)
+fig.text(0.008, 0.985, "B", fontsize=15, fontweight="bold", va="top", ha="left",
+         bbox=dict(facecolor="white", alpha=0.6, edgecolor="none", pad=0.5))
 fig.tight_layout()
 plt.show()
 '''
@@ -417,8 +482,9 @@ status_box(axes[0, 1], "TUMOR_FRACTION", "Tumor fraction (0-1)", "OS")
 status_box(axes[1, 0], "TUMOR_PLOIDY", "Tumor ploidy", "OS")
 sex_bar(axes[1, 1], "OS")
 for ax, lbl in zip(axes.ravel(), ["c1", "c2", "c3", "c4"]):
-    ax.text(0.0, 1.02, lbl, transform=ax.transAxes, fontsize=11, fontweight="bold",
-            va="bottom", ha="left")
+    ax.text(0.0, 1.0, lbl, transform=ax.transAxes, fontsize=11, fontweight="bold",
+            va="top", ha="left", bbox=dict(facecolor="white", alpha=0.6,
+                                           edgecolor="none", pad=0.5))
 print("Verify C: AGE U=1819966 p=0.0059 d=0.053; TF U=957930 p<0.001 d=0.149; "
       "TP U=837216 p=0.0772 d=-0.033; SEX chi2=10.35 p=0.0057 V=0.052")
 fig.tight_layout()
@@ -439,8 +505,9 @@ status_box(axes[0, 1], "TUMOR_FRACTION", "Tumor fraction (0-1)", "EFS")
 status_box(axes[1, 0], "TUMOR_PLOIDY", "Tumor ploidy", "EFS")
 sex_bar(axes[1, 1], "EFS")
 for ax, lbl in zip(axes.ravel(), ["d1", "d2", "d3", "d4"]):
-    ax.text(0.0, 1.02, lbl, transform=ax.transAxes, fontsize=11, fontweight="bold",
-            va="bottom", ha="left")
+    ax.text(0.0, 1.0, lbl, transform=ax.transAxes, fontsize=11, fontweight="bold",
+            va="top", ha="left", bbox=dict(facecolor="white", alpha=0.6,
+                                           edgecolor="none", pad=0.5))
 print("Verify D: AGE U=2081908 p<0.001 d=0.161; TF U=940892 p<0.001 d=0.094; "
       "TP U=868710 p=0.0454 d=-0.036; SEX chi2=5.81 p=0.0548 V=0.039")
 fig.tight_layout()
@@ -454,7 +521,7 @@ CELL_E = '''# Panel 4.E — Mini KM — OS (context/figure_instructions/fig_surv
 @@COMMON@@
 
 print("4.E")
-fig, axes = plt.subplots(1, 5, figsize=(21, 4.2))
+fig, axes = plt.subplots(1, 5, figsize=(21, 6.5))
 fig.text(0.005, 0.97, "E", fontsize=16, fontweight="bold", va="top", ha="left")
 T, E, ylab = "OS_MONTHS", "os_event", "Overall survival probability"
 
@@ -503,7 +570,7 @@ CELL_F = '''# Panel 4.F — Mini KM — EFS (context/figure_instructions/fig_sur
 @@COMMON@@
 
 print("4.F")
-fig, axes = plt.subplots(1, 5, figsize=(21, 4.2))
+fig, axes = plt.subplots(1, 5, figsize=(21, 6.5))
 fig.text(0.005, 0.97, "F", fontsize=16, fontweight="bold", va="top", ha="left")
 T, E, ylab = "EFS_MONTHS", "efs_event", "Event-free survival probability"
 
@@ -545,14 +612,85 @@ fig.tight_layout()
 plt.show()
 '''
 
-# ── Panel G: Forest — OS (stratified Cox PH) ────────────────────────────────
-CELL_G = '''# Panel 4.G — Forest — OS (stratified Cox PH) (context/figure_instructions/fig_survival_analysis.md)
+# ── Panel H: Forest — OS (stratified Cox PH) ────────────────────────────────
+# ── Panel G: TUMOR_FRACTION x OS - TF-1 bias ─────────────────────────────────────
+CELL_G = '''# Panel 4.G - TUMOR_FRACTION x OS: TF=1 bias sensitivity
+# The TF-OS association is non-monotonic: death rate climbs toward ~50%% in the
+# 0.7-0.9 bins, then collapses to ~16%% at TF=1 (661 OS-known samples), which biases
+# the global Mann-Whitney. g1: global MW; g2: KM (median split); g3: binned death
+# rate with n per bin; g4: MW sensitivity excluding TF=1.
+%matplotlib inline
+@@COMMON@@
+
+print("4.G")
+fig, axes = plt.subplots(2, 2, figsize=(15, 9.5))
+fig.text(0.005, 0.985, "G", fontsize=16, fontweight="bold", va="top", ha="left")
+
+# g1 - TF x OS (global, binary MW)
+status_box(axes[0, 0], "TUMOR_FRACTION", "Tumor fraction (0-1)", "OS")
+
+# g2 - TF x OS (KM, median split)
+T, E = "OS_MONTHS", "os_event"
+d = df.dropna(subset=["TUMOR_FRACTION", T, E]).copy()
+med = d["TUMOR_FRACTION"].median()
+p = km_mini(axes[0, 1], d[d["TUMOR_FRACTION"] <= med], d[d["TUMOR_FRACTION"] > med], T, E,
+            f"Low TF <={med:.2f}", f"High TF >{med:.2f}", "#3498db", "#e74c3c",
+            "TF (median split)", "g2", "Overall survival probability")
+print(f"TF x OS (KM): log-rank p={p:.4f} (median split at {med:.2f})")
+
+# g3 - death rate by TF bin (n per bin); the ==1 bin kept separate
+d = df.dropna(subset=["TUMOR_FRACTION", "OS_STATUS"]).copy()
+d["os_label"] = d["OS_STATUS"].str.replace(r"^\\d+:", "", regex=True)
+bins = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.0]
+blabels = [f"[{b:.1f},{b + .1:.1f})" for b in np.arange(0, 1, 0.1)]
+d["tf_bin"] = pd.cut(d["TUMOR_FRACTION"], bins=bins, right=False, include_lowest=True,
+                     labels=blabels, ordered=False)
+d["tf_bin"] = d["tf_bin"].cat.add_categories("1.0").fillna("1.0")
+tab = d.groupby("tf_bin", observed=False).agg(n=("TUMOR_FRACTION", "size"),
+                                              n_dec=("os_label", lambda s: s.eq("DECEASED").sum()))
+tab["rate"] = 100 * tab["n_dec"] / tab["n"]
+tab = tab.reindex(blabels + ["1.0"])
+print("TF bin | n | deceased | death rate")
+print(tab.to_string())
+ax = axes[1, 0]
+cols = ["#5dade2"] * len(blabels) + ["#2ecc71"]
+ax.bar(np.arange(len(tab)), tab["rate"], color=cols, edgecolor="white", lw=0.4)
+ax.axhline(100 * d["os_label"].eq("DECEASED").mean(), color="0.4", ls="--", lw=1)
+ax.set_xticks(np.arange(len(tab)))
+ax.set_xticklabels(tab.index, rotation=45, ha="right", fontsize=8)
+ax.set_ylabel("%% deceased")
+ax.set_xlabel("Tumor fraction bin")
+ax.set_title("Death rate by tumor fraction bin (n per bin)", fontsize=10)
+for xi, (n, r) in enumerate(zip(tab["n"], tab["rate"])):
+    ax.text(xi, r + 1, f"n={n}", ha="center", va="bottom", fontsize=7.5)
+
+# g4 - TF x OS (MW) excluding TF=1
+status_box(axes[1, 1], "TUMOR_FRACTION", "Tumor fraction (0-1), TF=1 excluded", "OS",
+           data=df[df["TUMOR_FRACTION"] < 1])
+
+for ax, lbl in zip(axes.ravel(), ["g1", "g2", "g3", "g4"]):
+    if lbl == "g2":
+        continue  # km_mini already draws its subletter
+    ax.text(0.0, 1.0, lbl, transform=ax.transAxes, fontsize=11, fontweight="bold",
+            va="top", ha="left", bbox=dict(facecolor="white", alpha=0.6,
+                                           edgecolor="none", pad=0.5))
+print(f"TF=1 samples (OS-known): {int((d['TUMOR_FRACTION'] == 1).sum())}, "
+      f"death rate {tab.loc['1.0', 'rate']:.1f}%%")
+print(f"Peak death rate among TF<1 bins: {tab['rate'].iloc[:-1].max():.1f}%%")
+fig.tight_layout()
+plt.show()
+'''
+
+
+
+
+CELL_H = '''# Panel 4.H — Forest — OS (stratified Cox PH) (context/figure_instructions/fig_survival_analysis.md)
 # Reuses clinical_mulltivar_hidden_strcture_analysis/src/build_nb.py cells 6+9.
 %matplotlib inline
 @@COMMON@@
 from lifelines import CoxPHFitter
 
-print("4.G")
+print("4.H")
 os_df = df.dropna(subset=["OS_MONTHS", "os_event", "AGE", "SEX", "TUMOR_FRACTION", "TUMOR_PLOIDY"]).copy()
 cph = CoxPHFitter(strata=["CANCER_GROUP"])
 cph.fit(os_df, duration_col="OS_MONTHS", event_col="os_event",
@@ -560,17 +698,17 @@ cph.fit(os_df, duration_col="OS_MONTHS", event_col="os_event",
 print(f"OS model: {len(os_df)} samples, {int(os_df['os_event'].sum())} events")
 print(f"Concordance: {cph.concordance_index_:.4f} | AIC: {cph.AIC_partial_:.2f}")
 forest_panel(cph, "OS: Stratified Cox PH",
-             "N=2256 samples, 933 events | Concordance=0.564 | AIC=7777.31", "G")
+             "N=2256 samples, 933 events | Concordance=0.564 | AIC=7777.31", "H")
 '''
 
-# ── Panel H: Forest — EFS (stratified Cox PH) ───────────────────────────────
-CELL_H = '''# Panel 4.H — Forest — EFS (stratified Cox PH) (context/figure_instructions/fig_survival_analysis.md)
+# ── Panel I: Forest — EFS (stratified Cox PH) ───────────────────────────────
+CELL_I = '''# Panel 4.I — Forest — EFS (stratified Cox PH) (context/figure_instructions/fig_survival_analysis.md)
 # Reuses clinical_mulltivar_hidden_strcture_analysis/src/build_nb.py cells 8+10.
 %matplotlib inline
 @@COMMON@@
 from lifelines import CoxPHFitter
 
-print("4.H")
+print("4.I")
 efs_df = df.dropna(subset=["EFS_MONTHS", "efs_event", "AGE", "SEX", "TUMOR_FRACTION", "TUMOR_PLOIDY"]).copy()
 cph = CoxPHFitter(strata=["CANCER_GROUP"])
 cph.fit(efs_df, duration_col="EFS_MONTHS", event_col="efs_event",
@@ -578,7 +716,45 @@ cph.fit(efs_df, duration_col="EFS_MONTHS", event_col="efs_event",
 print(f"EFS model: {len(efs_df)} samples, {int(efs_df['efs_event'].sum())} events")
 print(f"Concordance: {cph.concordance_index_:.4f} | AIC: {cph.AIC_partial_:.2f}")
 forest_panel(cph, "EFS: Stratified Cox PH",
-             "N=2147 samples, 1384 events | Concordance=0.590 | AIC=11145.77", "H")
+             "N=2147 samples, 1384 events | Concordance=0.590 | AIC=11145.77", "I")
+'''
+
+
+# ── Panel J: Per-CG univariate Cox — OS ───────────────────────────────────────
+CELL_J = '''# Panel 4.J — Per-cancer-group univariate Cox — Overall Survival
+# Mirrors clinical_mulltivar_hidden_strcture_analysis cells 13/14 (subgroup_forest).
+%matplotlib inline
+@@COMMON@@
+
+print("4.J")
+predictors = ["AGE", "SEX", "TUMOR_FRACTION", "TUMOR_PLOIDY"]
+coxd = df.dropna(subset=["OS_MONTHS", "os_event"] + predictors).copy()
+print(f"OS per-CG univariate Cox: {len(coxd)} samples, {int(coxd['os_event'].sum())} events")
+fig, axes = plt.subplots(1, len(predictors), figsize=(19, 9.5))
+fig.text(0.005, 0.985, "J", fontsize=16, fontweight="bold", va="top", ha="left")
+subgroup_forest_mpl(axes, coxd, "OS_MONTHS", "os_event", predictors)
+fig.suptitle("Per-cancer-group univariate Cox \u2014 Overall Survival", fontsize=12)
+fig.tight_layout()
+plt.show()
+'''
+
+
+# ── Panel K: Per-CG univariate Cox — EFS ──────────────────────────────────────
+CELL_K = '''# Panel 4.K — Per-cancer-group univariate Cox — Event-Free Survival
+# Mirrors clinical_mulltivar_hidden_strcture_analysis cells 13/14 (subgroup_forest).
+%matplotlib inline
+@@COMMON@@
+
+print("4.K")
+predictors = ["AGE", "SEX", "TUMOR_FRACTION", "TUMOR_PLOIDY"]
+coxd = df.dropna(subset=["EFS_MONTHS", "efs_event"] + predictors).copy()
+print(f"EFS per-CG univariate Cox: {len(coxd)} samples, {int(coxd['efs_event'].sum())} events")
+fig, axes = plt.subplots(1, len(predictors), figsize=(19, 9.5))
+fig.text(0.005, 0.985, "K", fontsize=16, fontweight="bold", va="top", ha="left")
+subgroup_forest_mpl(axes, coxd, "EFS_MONTHS", "efs_event", predictors)
+fig.suptitle("Per-cancer-group univariate Cox \u2014 Event-Free Survival", fontsize=12)
+fig.tight_layout()
+plt.show()
 '''
 
 
@@ -603,8 +779,11 @@ cells = [
     code_cell(fill(CELL_D)),
     code_cell(fill(CELL_E)),
     code_cell(fill(CELL_F)),
-    code_cell(fill(CELL_G)),
-    code_cell(fill(CELL_H)),
+    code_cell(fill(CELL_G)),  # 4.G TF=1 bias sensitivity
+    code_cell(fill(CELL_H)),  # 4.H Forest OS (stratified Cox)
+    code_cell(fill(CELL_I)),  # 4.I Forest EFS (stratified Cox)
+    code_cell(fill(CELL_J)),  # 4.J Per-CG univariate Cox — OS
+    code_cell(fill(CELL_K)),  # 4.K Per-CG univariate Cox — EFS
 ]
 
 nb = nbf.v4.new_notebook(

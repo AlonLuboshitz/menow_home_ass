@@ -20,10 +20,9 @@ my-opencode-config/
 fb-skills/
 
 # Data files (raw data - too large for git)
-PBTA_RNA.zip
 PBTA_RNA/*.txt
 !PBTA_RNA/README.md
-
+Tasks.md
 # Generated outputs are tracked
 
 # OS

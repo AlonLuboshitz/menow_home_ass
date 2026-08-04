@@ -1,0 +1,106 @@
+PMID- 41186880
+OWN - NLM
+STAT- PubMed-not-MEDLINE
+DCOM- 20251126
+LR  - 20251128
+IS  - 2366-1089 (Electronic)
+IS  - 2366-1070 (Print)
+IS  - 2366-1089 (Linking)
+VI  - 13
+IP  - 4
+DP  - 2025 Dec
+TI  - Evaluation of Event-Free Survival as a Surrogate Endpoint for Overall Survival in 
+      Muscle-Invasive Bladder Cancer Following Neoadjuvant Treatment: A Systematic 
+      Review and Meta-Analysis.
+PG  - 1225-1241
+LID - 10.1007/s40487-025-00399-3 [doi]
+AB  - INTRODUCTION: Event-free survival (EFS), a common endpoint in 
+      neoadjuvant/perioperative oncology trials, allows for accelerated treatment 
+      evaluation while awaiting results of overall survival (OS). However, the 
+      surrogacy of EFS for OS in muscle-invasive bladder cancer (MIBC) has yet to be 
+      established. This meta-analysis evaluated EFS as a surrogate endpoint for OS in 
+      neoadjuvant-treated MIBC. METHODS: A systematic literature review identified 
+      neoadjuvant or perioperative clinical trials for MIBC reporting both EFS and OS. 
+      Treatment effect association was evaluated by assessing the association of the 
+      hazard ratio (HR) of EFS with that of OS. Survival outcome associations were 
+      evaluated by assessing the associations of survival rates and median survival 
+      times between EFS and OS, respectively. These associations were meta-analyzed 
+      using weighted linear regression. The strength of association was quantified 
+      using coefficient of determination (R(2)). RESULTS: Seven eligible trials were 
+      identified for the analysis of treatment effect association and 17 trials were 
+      included in the analyses of survival outcome associations. Strong association was 
+      observed between EFS and OS at treatment effect level (R(2) = 0.80 [95% 
+      confidence interval (CI): 0.38-0.99]). Consistently, significant survival outcome 
+      associations were observed between 3-year EFS and 5-year OS (R(2) = 0.80 [95% CI: 
+      0.28-0.93]) and between median EFS time and median OS time (R(2) = 0.97 [95% CI: 
+      0.45-1.00]). CONCLUSIONS: EFS is strongly associated with OS in respect to 
+      treatment effects and survival outcome measures in clinical trials for MIBC 
+      following neoadjuvant treatment. EFS can be considered as a surrogate endpoint 
+      for OS when evaluating neoadjuvant treatments for MIBC.
+CI  - © 2025. Merck & Co., Inc., Rahway, NJ, USA and its affiliates and Cora N. 
+      Sternberg.
+FAU - Sternberg, Cora N
+AU  - Sternberg CN
+AD  - Englander Institute for Precision Medicine, Weill Cornell Medicine, Hematology 
+      and Oncology, New York-Presbyterian Hospital, New York, NY, USA. 
+      cns9006@med.cornell.edu.
+FAU - Squires, Patrick
+AU  - Squires P
+AD  - Merck & Co., Inc., Rahway, NJ, USA.
+FAU - Song, Yan
+AU  - Song Y
+AD  - Analysis Group Inc., Boston, MA, USA.
+FAU - Wu, Aozhou
+AU  - Wu A
+AD  - Analysis Group Inc., Boston, MA, USA.
+FAU - Gao, Yipeng
+AU  - Gao Y
+AD  - Analysis Group Inc., Boston, MA, USA.
+FAU - Kataria, Ritesh S
+AU  - Kataria RS
+AD  - Merck & Co., Inc., Rahway, NJ, USA.
+FAU - Li, Haojie
+AU  - Li H
+AD  - Merck & Co., Inc., Rahway, NJ, USA.
+LA  - eng
+PT  - Journal Article
+DEP - 20251104
+PL  - New Zealand
+TA  - Oncol Ther
+JT  - Oncology and therapy
+JID - 101677510
+PMC - PMC12647506
+OTO - NOTNLM
+OT  - Event-free survival
+OT  - Muscle-invasive bladder cancer
+OT  - Neoadjuvant treatment
+OT  - Overall survival
+OT  - Surrogate endpoints
+COIS- Declarations. Conflict of Interest: Cora N. Sternberg received honoraria from 
+      Merck, Astellas Pharma, AstraZeneca, Bayer, Bristol-Myers Squibb/Medarex, 
+      Foundation Medicine, Sanofi, Genzyme, Gilead, MSD, Pfizer, Janssen, Roche, 
+      Medscape, Tolmar, and UroToday. Patrick Squires, Ritesh S. Kataria, and Haojie Li 
+      are employees of Merck Sharp & Dohme LLC, a subsidiary of Merck & Co., Inc., 
+      Rahway, NJ, USA. Yan Song, Aozhou Wu, and Yipeng Gao are employees of Analysis 
+      Group, Inc., a consulting company that has provided paid consulting services to 
+      Merck Sharp & Dohme LLC, a subsidiary of Merck & Co., Inc., Rahway, NJ, USA, 
+      which funded the development and conduct of this study and manuscript. 
+      Ethics/Ethical Approval: This article is based on previously conducted studies 
+      and does not contain any new studies with human participants or animals performed 
+      by any of the authors.
+EDAT- 2025/11/04 12:27
+MHDA- 2025/11/04 12:28
+PMCR- 2025/11/04
+CRDT- 2025/11/04 11:19
+PHST- 2025/09/17 00:00 [received]
+PHST- 2025/10/23 00:00 [accepted]
+PHST- 2025/11/04 12:28 [medline]
+PHST- 2025/11/04 12:27 [pubmed]
+PHST- 2025/11/04 11:19 [entrez]
+PHST- 2025/11/04 00:00 [pmc-release]
+AID - 10.1007/s40487-025-00399-3 [pii]
+AID - 399 [pii]
+AID - 10.1007/s40487-025-00399-3 [doi]
+PST - ppublish
+SO  - Oncol Ther. 2025 Dec;13(4):1225-1241. doi: 10.1007/s40487-025-00399-3. Epub 2025 
+      Nov 4.

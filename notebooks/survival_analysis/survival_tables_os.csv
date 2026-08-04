@@ -1,0 +1,24 @@
+,AGE,TF,TP,SEX
+Adamantinomatous Craniopharyngioma,0.722,,0.722,0.722
+Atypical Teratoid Rhabdoid Tumor,0.711,0.9462,0.3687,0.0309
+CNS Embryonal tumor,0.261,,,0.7404
+Chordoma,0.0064,,,0.0064
+Choroid plexus tumor,0.078,0.6965,0.6965,0.6965
+Diffuse hemispheric glioma,0.0018,,,0.0259
+Diffuse midline glioma,0.875,0.5933,0.875,0.6557
+Dysembryoplastic neuroepithelial tumor,1.0,1.0,1.0,1.0
+Embryonal tumor with multilayer rosettes,0.7052,,,0.1132
+Ependymoma,0.8597,0.5378,0.8597,0.0032
+Ewing sarcoma,0.5709,0.9363,0.6485,0.9745
+Ganglioglioma,1.0,1.0,1.0,1.0
+Glial-neuronal tumor NOS,0.1738,0.8048,0.9979,0.1709
+High-grade glioma,0.0024,0.6159,0.6159,0.5623
+Low-grade glioma,0.4608,0.0759,0.4039,0.0759
+Medulloblastoma,0.0077,0.1373,0.5215,0.4516
+Meningioma,0.3753,0.9434,0.4274,0.0664
+Neuroblastoma,0.9176,,,0.382
+Neurofibroma/Plexiform,0.828,,0.908,0.607
+Pineoblastoma,0.8653,,,0.3522
+Sarcoma,0.7921,0.3202,0.8837,0.984
+Schwannoma,0.0429,0.3319,0.1092,0.887
+N significant,5.0,0.0,0.0,4.0

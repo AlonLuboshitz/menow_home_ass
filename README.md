@@ -1,297 +1,202 @@
-# PBTA RNA Clinical Data Analysis
+# PBTA Clinical and RNA Analysis
 
-Exploratory analysis of patient- and sample-level clinical data from a Pediatric Brain Tumor Atlas (`PBTA_RNA`) dataset.
+Exploratory analysis of the Pediatric Brain Tumor Atlas (PBTA) clinical dataset, with supporting RNA-expression data, to identify clinically meaningful tumor groups and variables for deeper investigation.
 
-The project uses a Jupyter notebook to profile the cohort, clean clinical variables, visualize tumor and demographic characteristics, and compare overall survival (OS) and event-free survival (EFS) across cancer groups and molecular subtypes. The current analysis is focused on clinical metadata; the RNA-expression matrix is documented but is not yet analyzed.
+The repository contains the source and executed notebooks, exported result tables, figures, and a short LaTeX report. The current analysis covers cohort characterization, clinical associations, survival outcomes, age-related effects, and multivariate hidden-structure analysis.
 
-## Project goals
+## Project objective
 
-This repository addresses the clinical-data portion of the PBTA exploratory challenge:
+The project was developed for an exploratory PBTA data-analysis assignment. Its main goals are to:
 
-1. Explore the available pediatric brain tumor datasets.
-2. Characterize patient demographics, outcomes, cancer predispositions, and tumor samples.
-3. Integrate patient- and sample-level records using `PATIENT_ID`.
-4. Identify cancer groups or molecular subtypes suitable for a focused biological or clinical question.
-5. Produce reproducible, interactive figures and a concise summary of the cohort.
+1. characterize the available pediatric brain-tumor cohort;
+2. compare clinical variables across cancer groups;
+3. evaluate overall-survival and event-free-survival patterns;
+4. examine age-related differences;
+5. explore multivariate structure within sufficiently large diagnostic groups; and
+6. select a tumor group and research direction for further study.
 
-## Analysis overview
-
-The main notebook contains 20 numbered steps plus Step 9a. The workflow covers:
-
-### Patient-level exploration
-
-- Dataset dimensions, column types, and missingness
-- Age, sex, race, and ethnicity distributions
-- OS and EFS status summaries
-- Kaplan-Meier survival curves
-- Cancer-predisposition prevalence and demographic patterns
-
-### Sample-level exploration
-
-- Cancer group, cancer type, broad histology, and CNS-region distributions
-- Tumor type and longitudinal sampling patterns
-- Tumor fraction and tumor ploidy
-- Molecular-subtype landscape
-- Sequencing strategies and RNA-library preparation
-- Patients represented by multiple cancer groups or multiple samples
-
-### Integrated analyses
-
-- Patient-to-sample merge validation
-- OS and EFS by major cancer group
-- OS and EFS by molecular subtype
-- Age and sex distributions across cancer groups
-- Tumor purity by cancer group and tumor type
-- Predisposition status versus age and outcome
-- CNS-region versus cancer-group associations
-- Consolidated figure inventory and generated Markdown summary
-
-The notebook produces 30+ interactive Plotly figures and uses statistical tests including Kruskal-Wallis, Mann-Whitney U, chi-square, and log-rank comparisons.
+The committed summary report prioritizes high-grade glioma (HGG) for follow-up analysis, while also highlighting diffuse midline glioma (DMG), low-grade glioma (LGG), and age as clinically important dimensions of the dataset.
 
 ## Repository structure
 
 ```text
-menow_home_ass/
+.
+├── PBTA_RNA.zip
+├── Cites/
+│   └── *.bib
+├── Figures/
+│   ├── fig_patients_demographics.pdf
+│   ├── fig_patients_demographics.png
+│   └── additional figure assets
+├── build/
+│   ├── report_summary.pdf
+│   ├── survival_tables.tex
+│   └── generated LaTeX outputs
 ├── context/
-│   ├── assignment.md
-│   ├── clinical_analysis_instruction.md
-│   ├── clinical_analysis_plan.md
-│   ├── code_guidelines.md
-│   └── referencess.md
+│   └── assignment, methodology, and analysis notes
 ├── notebooks/
-│   ├── clinical_analysis.ipynb
-│   └── clinical_analysis/
-│       ├── basic_clinical_summary.md
-│       └── nb_cells/
-│           ├── imports.py
-│           ├── build_notebook.py
-│           ├── step_01.md / step_01.py / ...
-│           └── step_20.md / step_20.py
-├── .gitignore
-├── opencode.json
-└── requirements.txt
+│   ├── age_deciles/
+│   ├── clinical_analysis/
+│   ├── clinical_associations/
+│   ├── clinical_mulltivar_hidden_strcture_analysis/
+│   ├── figure_notebooks/
+│   ├── survival_analysis/
+│   └── *_executed.ipynb
+├── scripts/
+│   └── build_survival_tables.py
+├── figure_summary.html
+├── report_summary.tex
+├── requirements.txt
+├── .gitattributes
+└── .gitignore
 ```
 
-### Important files
+The directory name `clinical_mulltivar_hidden_strcture_analysis` is reproduced exactly as it currently appears in the repository.
 
-| File | Description |
-|---|---|
-| `notebooks/clinical_analysis.ipynb` | Main executable analysis notebook with saved outputs. |
-| `notebooks/clinical_analysis/nb_cells/imports.py` | Shared imports, data loaders, cleaning functions, Kaplan-Meier helpers, and log-rank functions. |
-| `notebooks/clinical_analysis/nb_cells/step_*.py` | Source code for individual analysis steps. |
-| `notebooks/clinical_analysis/nb_cells/step_*.md` | Markdown headings and descriptions for notebook steps. |
-| `notebooks/clinical_analysis/basic_clinical_summary.md` | Generated high-level cohort summary. |
-| `context/clinical_analysis_instruction.md` | Detailed notebook specification and missing-value rules. |
-| `context/clinical_analysis_plan.md` | Data schema, field descriptions, and suggested analyses. |
-| `context/code_guidelines.md` | Environment, style, validation, and version-control conventions. |
+## Analysis modules
 
-## Data
+| Module | Purpose | Main outputs |
+|---|---|---|
+| Basic clinical analysis | Cohort size, sample availability, diagnosis distribution, age, sex, and missingness | Summary Markdown and executed notebook |
+| Clinical associations | Tests associations between tumor groups and clinical variables, with multiple-testing correction and effect sizes | Result and summary CSV files |
+| Survival analysis | Overall-survival and event-free-survival comparisons, post-hoc testing, and Cox proportional-hazards analysis | Survival tables, summaries, and notebook |
+| Age-decile analysis | Examines age distributions and age-associated differences across cancer groups | Notebook and result CSV |
+| Hidden-structure analysis | Uses dimensionality reduction and clustering within sufficiently large diagnostic groups | Per-group clustering results and notebook |
+| Figure notebooks | Produces report-ready demographic, clinical-association, sample, and survival visualizations | HTML and notebook exports |
 
-The raw data are intentionally excluded from version control. Create a `PBTA_RNA/` directory at the repository root and add the following files:
+## Data and Git LFS
 
-```text
-PBTA_RNA/
-├── data_clinical_patient_attributes.txt
-├── data_clinical_sample_attributes.txt
-└── data_mrna_expression_continuous_rna_seq_v2_mrna.txt
-```
+`PBTA_RNA.zip` is approximately 102 MB and is tracked with **Git Large File Storage (Git LFS)**. The `.gitattributes` file associates this specific archive with the LFS filter.
 
-Only the two clinical files are required for the current notebook. The expression matrix is reserved for future transcriptomic analysis.
+Install Git LFS before cloning or pulling the repository. Without it, Git may retrieve only the small LFS pointer instead of the actual archive.
 
-### Expected file format
-
-The two clinical files use the cBioPortal-style tab-separated format:
-
-- Lines 1-4: metadata describing the columns
-- Line 5: machine-readable column names
-- Lines 6 onward: data records
-
-They are therefore loaded with:
-
-```python
-pd.read_csv(path, sep="\t", header=4)
-```
-
-### Main identifiers
-
-- `PATIENT_ID` uniquely identifies patients and links the two clinical tables.
-- `SAMPLE_ID` uniquely identifies tumor samples.
-- A patient may have more than one sample or collection event.
-
-## Installation
-
-### Prerequisites
-
-- Python 3.11 recommended; Python newer than 3.10 is expected
-- [`uv`](https://docs.astral.sh/uv/)
-- JupyterLab or Jupyter Notebook
-
-### Set up the environment
+### Clone and retrieve the data
 
 ```bash
+git lfs install
 git clone https://github.com/AlonLuboshitz/menow_home_ass.git
 cd menow_home_ass
+git lfs pull
+```
 
-uv venv .venv --python 3.11
+Extract the archive in the repository root:
+
+```bash
+unzip PBTA_RNA.zip
+```
+
+On PowerShell:
+
+```powershell
+Expand-Archive PBTA_RNA.zip -DestinationPath .
+```
+
+After extraction, the notebooks expect a directory named `PBTA_RNA/`. The unpacked raw text files are intentionally ignored by Git, while the ZIP archive itself remains versioned through Git LFS.
+
+Expected clinical-data paths include:
+
+```text
+PBTA_RNA/data_clinical_patient_attributes.txt
+PBTA_RNA/data_clinical_sample_attributes.txt
+```
+
+Some analyses also use the RNA-expression file contained in the extracted data directory.
+
+## Environment setup
+
+The project uses Python and Jupyter notebooks. Python 3.11 is recommended because that is the version referenced by the existing project environment.
+
+### Using `uv`
+
+```bash
+uv venv --python 3.11
 source .venv/bin/activate
 uv pip install -r requirements.txt
 ```
 
-On Windows PowerShell, activate the environment with:
+On Windows PowerShell:
 
 ```powershell
+uv venv --python 3.11
 .venv\Scripts\Activate.ps1
+uv pip install -r requirements.txt
 ```
 
 Register the environment as a Jupyter kernel:
 
 ```bash
-python -m ipykernel install --user \
-  --name pbta_env \
-  --display-name "Python (PBTA)"
+python -m ipykernel install --user --name menow-home-ass --display-name "Python (menow_home_ass)"
 ```
 
-## Configure local paths
+### Additional notebook dependencies
 
-Several source cells currently use the original development path:
+The current notebooks and methodology files reference several packages that are not all listed in the committed `requirements.txt`. Until the requirements file is consolidated, install the additional analysis packages explicitly:
 
-```text
-/home/alon/menow_home_ass
+```bash
+uv pip install statsmodels scikit-posthocs lifelines scikit-learn prince
 ```
 
-When the repository is stored elsewhere, update the following constants before rebuilding or running source cells:
+## Running the analyses
 
-- `DATA_DIR` in `notebooks/clinical_analysis/nb_cells/imports.py`
-- `CELLS_DIR` and the output path in `notebooks/clinical_analysis/nb_cells/build_notebook.py`
-- The summary-output path in `notebooks/clinical_analysis/nb_cells/step_19.py`
-
-For example:
-
-```python
-DATA_DIR = "/absolute/path/to/menow_home_ass/PBTA_RNA"
-```
-
-The committed notebook may also contain these absolute paths because the source code is embedded in notebook cells. Search for `/home/alon/menow_home_ass` in `notebooks/clinical_analysis.ipynb` and replace it with your local repository path when needed.
-
-## Run the analysis
-
-Start Jupyter from the repository root:
+Run commands and launch Jupyter from the repository root so that the project-relative data and output paths resolve consistently:
 
 ```bash
 jupyter lab
 ```
 
-Open:
+Open the source notebook for the desired module and select the `Python (menow_home_ass)` kernel. The top level of `notebooks/` also contains executed notebook copies that can be reviewed without rerunning every analysis.
 
-```text
-notebooks/clinical_analysis.ipynb
-```
+A practical execution order is:
 
-Select the **Python (PBTA)** kernel and run the notebook from top to bottom.
+1. `notebooks/clinical_analysis/`
+2. `notebooks/clinical_associations/`
+3. `notebooks/survival_analysis/`
+4. `notebooks/age_deciles/`
+5. `notebooks/clinical_mulltivar_hidden_strcture_analysis/`
+6. `notebooks/figure_notebooks/`
 
-### Non-interactive execution
+Some module directories contain a `src/` folder with scripts or Markdown cells used to construct the corresponding notebook.
 
-To execute the notebook and save a separate completed copy:
+## Generated outputs
 
-```bash
-jupyter nbconvert \
-  --to notebook \
-  --execute notebooks/clinical_analysis.ipynb \
-  --ExecutePreprocessor.timeout=600 \
-  --output clinical_analysis_executed.ipynb
-```
+Important committed outputs include:
 
-Interactive Plotly charts are best viewed in JupyterLab or by opening the executed notebook in a compatible notebook viewer.
+- `build/report_summary.pdf` — compiled short report;
+- `report_summary.tex` — report source;
+- `figure_summary.html` — browser-viewable figure summary;
+- `Figures/` — exported report figures;
+- `build/survival_tables.tex` — generated LaTeX survival tables; and
+- module-specific CSV result files under `notebooks/`.
 
-## Rebuild the notebook from source cells
-
-The modular notebook sources are stored under:
-
-```text
-notebooks/clinical_analysis/nb_cells/
-```
-
-After correcting the paths in `build_notebook.py`, rebuild with:
+To rebuild the survival tables:
 
 ```bash
-python notebooks/clinical_analysis/nb_cells/build_notebook.py
+python scripts/build_survival_tables.py
 ```
 
-Review the generated notebook path printed by the script before replacing the committed notebook.
+Compile `report_summary.tex` with a local LaTeX installation or an online LaTeX editor after regenerating any required tables and figures.
 
-## Data-cleaning conventions
+## Current result snapshot
 
-The notebook applies documented cleaning rules consistently:
+The committed exploratory analysis reports:
 
-- `RACE` and `ETHNICITY`: missing or unknown-style values are grouped as `Unknown`.
-- `OS_STATUS`: prefixes such as `0:` and `1:` are removed; death is encoded as an event.
-- `EFS_STATUS`: represented both as a binary event indicator and as detailed event categories.
-- `CANCER_PREDISPOSITIONS`: `None documented` becomes `No predisposition`; missing or unreported values become `Unknown`.
-- `MOLECULAR_SUBTYPE`: missing values and `To be classified` become `Unclassified`.
-- Missing tumor fraction and ploidy values are retained as explicit unknown groups where appropriate.
-- Records lacking complete time/status pairs are excluded from the corresponding Kaplan-Meier analysis.
+- 2,870 patients;
+- 4,312 samples;
+- 55 cancer groups;
+- low-grade glioma as the largest diagnostic group;
+- age as the strongest recurring clinical variable across several analyses; and
+- HGG as the primary group selected for deeper follow-up in the summary report.
 
-Each notebook section includes validation output for missingness or data integrity.
+These findings are exploratory and depend on the available PBTA annotations, missing-data patterns, group sizes, and analysis choices documented in the notebooks.
 
-## Current results snapshot
+## Reproducibility notes
 
-The committed generated summary reports:
+- The raw extracted data are not committed directly; retrieve the LFS archive and extract it locally.
+- Analysis code uses repository-relative paths; run notebooks and scripts from the repository root.
+- The current `requirements.txt` does not yet capture every package imported by all deep-dive notebooks.
+- Generated outputs are committed for inspection, but the source notebooks and data should be treated as the reproducible source of truth.
+- The project is an exploratory research analysis and is not intended for clinical decision-making.
 
-- 2,870 patients
-- 4,312 samples
-- 55 cancer groups
-- Low-grade glioma as the largest cancer group, with 862 samples
-- Median age at diagnosis of 8 years
-- 2,096 patients with complete OS information
-- 313 patients classified as having a known cancer predisposition
-- 882 samples with an unclassified molecular subtype
-- Approximately one third of samples missing tumor-fraction or tumor-ploidy values
+## License
 
-These values reflect the dataset version used to execute the committed notebook and may change with a different or updated export.
-
-## Methods and dependencies
-
-Core analysis packages include:
-
-- `pandas` and `numpy` for data manipulation
-- `plotly` for interactive visualizations
-- `scipy` for non-parametric and contingency-table tests
-- JupyterLab and `nbconvert` for notebook development and execution
-
-Kaplan-Meier estimates and log-rank tests are implemented in project helper functions rather than through a dedicated survival-analysis package.
-
-## Interpretation notes
-
-This repository is intended for exploratory research and assignment work, not clinical decision-making.
-
-Important considerations include:
-
-- Clinical variables contain substantial and non-random missingness.
-- Patients may contribute multiple samples; patient-level analyses should avoid counting the same patient more than once unless repeated sampling is part of the question.
-- Cancer-group and molecular-subtype classifications may differ across collection events.
-- Survival comparisons are unadjusted and do not account for possible confounders such as age, treatment, disease stage, or cohort source.
-- Statistical significance should be interpreted together with group size, missingness, and biological plausibility.
-
-## Development conventions
-
-The repository follows these conventions:
-
-- Use `uv pip install`, rather than installing packages inside notebooks.
-- Keep raw PBTA data out of Git.
-- Prefer Plotly figures with titles, axis labels, and legends.
-- Include validation checks in each analysis step.
-- Use Conventional Commit prefixes such as `feat:`, `fix:`, `docs:`, and `chore:`.
-- Run the notebook end to end before committing analytical changes.
-
-## Possible next steps
-
-- Select a focused `CANCER_GROUP` or `CANCER_TYPE` for the final exploratory question.
-- Integrate clinical metadata with the RNA-expression matrix.
-- Test pathway or gene-expression differences between relevant subtypes.
-- Build and validate a predictive model using patient-level train/test splits.
-- Replace hard-coded absolute paths with a portable configuration or project-root discovery mechanism.
-- Add automated notebook execution in continuous integration.
-
-## Acknowledgment
-
-The analysis is based on pediatric brain tumor data organized under the PBTA/Open Pediatric Brain Tumor Atlas ecosystem and exported in a cBioPortal-compatible format.
+No `LICENSE` file is currently included in the repository. Add an explicit license before reusing or distributing the project beyond its intended context.

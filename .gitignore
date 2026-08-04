@@ -26,6 +26,12 @@ PBTA_RNA/*.txt
 Tasks.md
 # Generated outputs are tracked
 
+# LaTeX intermediate files
+build/*.aux
+build/*.blg
+build/*.log
+build/*.out
+
 # OS
 .DS_Store
 Thumbs.db

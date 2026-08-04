@@ -1,8 +1,31 @@
-\begin{thebibliography}{0}
+\begin{thebibliography}{2}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Brlek et~al.(2021)Brlek, Kafka, Bukovac, and
+  Pećina-Šlaus]{cancers13133247}
+Petar Brlek, Anja Kafka, Anja Bukovac, and Nives Pećina-Šlaus.
+\newblock Integrative cbioportal analysis revealed molecular mechanisms that
+  regulate egfr-pi3k-akt-mtor pathway in diffuse gliomas of the brain.
+\newblock \emph{Cancers}, 13\penalty0 (13), 2021.
+\newblock ISSN 2072-6694.
+\newblock \doi{10.3390/cancers13133247}.
+\newblock URL \url{https://www.mdpi.com/2072-6694/13/13/3247}.
+
+\bibitem[Sternberg et~al.(2025)Sternberg, Squires, Song, Wu, Gao, Kataria, and
+  Li]{Sternberg2025Evaluation}
+Cora~N Sternberg, Patrick Squires, Yan Song, Aozhou Wu, Yipeng Gao, Ritesh~S
+  Kataria, and Haojie Li.
+\newblock Evaluation of event-free survival as a surrogate endpoint for overall
+  survival in muscle-invasive bladder cancer following neoadjuvant treatment: A
+  systematic review and meta-analysis.
+\newblock \emph{Oncology and therapy}, 13\penalty0 (4):\penalty0 1225--1241,
+  December 2025.
+\newblock ISSN 2366-1089.
+\newblock \doi{10.1007/s40487-025-00399-3}.
+\newblock URL \url{https://doi.org/10.1007/s40487-025-00399-3}.
 
 \end{thebibliography}

@@ -22,8 +22,8 @@
 Questions like what cancer group is interesting or what is interesting in the data are challenging questions and 
 could be tackled in a few ways. A simple yet powerful approach would be to tackle groups that have strong 
 statistics to work on (number of samples and so on). Analysing these groups would be reproducible
-among other groups and can reveal novel outcomes. Moreover, Brlek et al. describes multiple ways 
-to interactively use cBioportal to reveal molecular mechanisms in cancer ~\cite{cancers13133247}.
+among other groups and can reveal novel outcomes. Moreover, Brlek et al. describe multiple ways 
+to interactively use cBioportal to reveal molecular mechanisms in cancer (~\cite{cancers13133247}).
 
 Nevertheless, to answer these questions, I conducted a systematic unsupervised approach where
 I assumed no prior knowledge or bias on the data. I was trying to answer two main questions: 
@@ -32,7 +32,6 @@ To do so, I visualised and statistically questioned the clinical data by asking 
 differ in cancer groups and are related to death/event status.
 I evaluated 343 combinations and found that HGG, DMG, LGG, ATRT, Chordoma, and Schwannoma are the most
 interesting cancer groups. AGE differs the most across all tests, and has the most powerful effect in the context of survival.
-
 
 \section{Methods}
 \subsection{Data processing}
@@ -67,7 +66,7 @@ model with AGE, SEX, TUMOR\_FRACTION, and TUMOR\_PLOIDY as covariates, stratifie
 group, on complete cases, reporting Wald p-values, hazard ratios with 95\% confidence
 intervals, and Schoenfeld residuals to check the proportional-hazards assumption. For AGE deciles, I divided the CG into subgroups based on the AGE values in 10\% increments.
 
-Analyses were implemented in Python (scipy, lifelines, pandas, statsmodels) as executed notebooks.
+Analyses were implemented in Python (scipy, lifelines, pandas, statsmodels) as executed notebooks. Source code can be found at: \url{https://github.com/AlonLuboshitz/menow_home_ass}
 
 
 
@@ -81,7 +80,7 @@ I conducted a simple visualisation and summarisation of the clinical and demogra
 histograms. I noticed that event-free survival (EFS) and overall survival (OS) months variables have ~28\% Null values (Figure 1A). 
 In total 65.3\% have a living status via the OS variable, whereas for the EFS variable, half the patients exhibit no event 
 and the other half are split between different events (Figure 1B, C). This demonstrates the value of investigating the 
-EFS rather than OS, where \textbf{EFS provides additional information}~\citep{41186880.nbib}. Furthermore, the age of diagnosis (AGE) right-skewed histogram suggests outliers or misleading data points, as this is a kids dataset (Figure 1D). A further inspection revealed
+EFS rather than OS, where \textbf{EFS provides additional information} (~\cite{Sternberg2025Evaluation}) Furthermore, the age of diagnosis (AGE) right-skewed histogram suggests outliers or misleading data points, as this is a kids dataset (Figure 1D). A further inspection revealed
 that most of these data points (53/62) belong to oligodendroglioma patients (Figure 1E). A quick web search suggested
 that this cancer is an adult cancer, and therefore \textbf{removing these data points for subsequent analysis should be considered}.
 

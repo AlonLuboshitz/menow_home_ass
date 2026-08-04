@@ -18,7 +18,6 @@ venv/
 .opencode
 my-opencode-config/
 fb-skills/
-opencode.json
 
 # Data files (raw data - too large for git)
 PBTA_RNA/*.txt
